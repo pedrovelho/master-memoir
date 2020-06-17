@@ -129,6 +129,9 @@ Jury member 2\\
 \renewcommand{\abstracttextfont}{\normalfont}
 \abstractintoc
 \begin{abstract} 
+	TODO : remove the focus on HPC
+
+
 	The rise of containerized applications has provided web platforms with
 	much more control over their resources than they had before with their
 	physical servers. Soon enough, developers realized they could go even
@@ -178,94 +181,148 @@ Good luck :)
 \SingleSpace
 
 \chapter{Introduction}
-\section{Scheduling and simulators}
-\subsection{A bit of context : High Performance Computing}
+\section{The increasing demand in computing infrastructures}
 
-TODO
+Computation is everywhere in our interconnected world. The online service
+industry is now omnipresent (one could even say, omniscient) in our daily lifes
+, and GAFAs now require massive amounts of computational power and storage. We
+cannot know for sure how much data it represents now - we can always try to
+guess \footnote{https://what-if.xkcd.com/63/} - as these companies do not
+disclose statistics on their size, however a study\cite{andrae2017total} has
+shown global electricity usage for the information and communications
+technology field could rise to a fifth of the global electricity usage by 2025
+despite the great breakthroughs in building energy efficient computing. This
+alone shows how much the demand in infrasctucture (both in storage and
+computing power) is increasing.\\
 
-A general definition of HPC would be :
-``\textit{High Performance Computing (HPC) most generally refers to the
-		practice of aggregating computing power in a way that delivers
-		much higher performance than one could get out of a typical
-		desktop computer in order to solve large problems in science,
-		engineering, or
-		business.}
-\footnote{\url{https://wwwen.uni.lu/university/high_performance_computing}}''.
-HPC can either refer to ``High Performance Computing'' or ``High Performance
-Computer'' but it is generally clear which one it refers to, given the
-context.
 
-A HPC workload is composed of numerous tasks hungry for computational resources
-which are executed in parallel on different machines (that we can refer to as
-compute resources or nodes). These tasks may be completely independant like
-when different users each submit a single task, or they may also be tightly
-coupled together as when a single user submits a job that is composed of
-several tasks than can be run in parallel. In that case, the whole system
-becomes very sensitive to latency as these tasks have got to communicate
-together. This is done through MPIs (Message Passing Interfaces) which
-represent a large part of the HPC field.\\
 
-\subsection{The scheduling problem}
-\begin{displayquote}[][]
-	\textbf{schedule} \textit{n.} : A plan for
-	performing work or achieving an objective, specifying the order and
-	allotted time for each part.
-\end{displayquote}
+TODO : 
+demand in industry, research, services, public domain, cryptocurrencies
+types of infra : hpc, hpda, gpu farms, distributed systems
 
-In a general way, scheduling is the concept of allocating available resources
-to a set of tasks, organizing them in time and space (the resource space). The
-resources can be of any nature, and the tasks independant from each others or
-linked together.
+\section{Studying infrastructures through simulation}
+TODO virgin real life experiments vs chad simulated scenarios
 
-In computing the definition remains the same, but with automation in mind.
-Schedulers are algorithms that take as an input either a pre-defined workload,
-which is a set of jobs  to be executed - the tasks are called jobs in this
-context -, or simple jobs submitted over time by users in an unpredictable
-manner. In the latter case, the jobs are added to a queue managed by the
-scheduler. Scheduling is also called batch scheduling or batch processing, as
-schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
-virtual or physical, with the intent of minimizing the total execution time,
-equally distributing resources, minimizing wait time for the user or reducing
-energy costs. As these objectives often contradict themselves, schedulers have
-to implement compromises or focus on what the user really needs or requires.  
+\section{Contribution}
+Batkube, and interface between Batsim infrastructure simulator and Kubernetes
+%\subsection{A bit of context : High Performance Computing}
+%
+%TODO
+%
+%A general definition of HPC would be :
+%``\textit{High Performance Computing (HPC) most generally refers to the
+%		practice of aggregating computing power in a way that delivers
+%		much higher performance than one could get out of a typical
+%		desktop computer in order to solve large problems in science,
+%		engineering, or
+%		business.}
+%\footnote{\url{https://wwwen.uni.lu/university/high_performance_computing}}''.
+%HPC can either refer to ``High Performance Computing'' or ``High Performance
+%Computer'' but it is generally clear which one it refers to, given the
+%context.
+%
+%A HPC workload is composed of numerous tasks hungry for computational resources
+%which are executed in parallel on different machines (that we can refer to as
+%compute resources or nodes). These tasks may be completely independant like
+%when different users each submit a single task, or they may also be tightly
+%coupled together as when a single user submits a job that is composed of
+%several tasks than can be run in parallel. In that case, the whole system
+%becomes very sensitive to latency as these tasks have got to communicate
+%together. This is done through MPIs (Message Passing Interfaces) which
+%represent a large part of the HPC field.\\
+%
+%\subsection{The scheduling problem}
+%\begin{displayquote}[][]
+%	\textbf{schedule} \textit{n.} : A plan for
+%	performing work or achieving an objective, specifying the order and
+%	allotted time for each part.
+%\end{displayquote}
+%
+%In a general way, scheduling is the concept of allocating available resources
+%to a set of tasks, organizing them in time and space (the resource space). The
+%resources can be of any nature, and the tasks independant from each others or
+%linked together.
+%
+%In computing the definition remains the same, but with automation in mind.
+%Schedulers are algorithms that take as an input either a pre-defined workload,
+%which is a set of jobs  to be executed - the tasks are called jobs in this
+%context -, or simple jobs submitted over time by users in an unpredictable
+%manner. In the latter case, the jobs are added to a queue managed by the
+%scheduler. Scheduling is also called batch scheduling or batch processing, as
+%schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
+%virtual or physical, with the intent of minimizing the total execution time,
+%equally distributing resources, minimizing wait time for the user or reducing
+%energy costs. As these objectives often contradict themselves, schedulers have
+%to implement compromises or focus on what the user really needs or requires.  
+%
+%The scheduler has many factors to keep in mind while trying to be as efficient
+%as possible, such as :
+%
+%\begin{itemize}
+%	\item Resource availability and jobs resource requirements
+%	\item Link between jobs (some are executed in parallel and need synchronization, some are independant)
+%	\item Latency between compute resources
+%	\item Compute resources failures
+%	\item Jobs priority
+%	\item Machine shutdowns and restarts
+%	\item Data locality
+%\end{itemize}
+%
+%All these elements make scheduling a very intricate problem that is at best
+%polynomial in complexity, and often NP-hard\cite{scheduler-complexity}.
+%Moreover, with the growing complexity of modern RJMS\footnote{The RJMS
+%	(Resource and Job Management System) is the software at the core of the
+%	cluster. It is a synonym for a scheduler and manages resources, energy
+%	consumption, users' jobs life-cycle and implements scheduling
+%	policies.} and the wide variety in infrastructures, scheduler
+%performances are rather inpredictable.
+%
+%\subsection{The need for an infrastructure simulator}
+% 
+%TODO 
+%
+%The complexity of the schedulinng problem and the high cost of running real
+%world scenarios makes the use of a simulator almost mandatory when evaluating
+%scheduling policies or developing a new scheduler. Indeed, modeling a scheduler
+%and its interactions with a given infrastructure and workload is far too
+%difficult for modern software and infrastructure.
+%
+\chapter{State of the art}
+\section{Infrastructure simulators}
 
-The scheduler has many factors to keep in mind while trying to be as efficient
-as possible, such as :
+Developing a scheduler implies being able to test its performances throughout
+the development process, however, testing in real conditions is time consuming
+and expensive.  Organizations can either have enough resources to cover these
+costs, or test their scheduler against a simulation.\\
 
-\begin{itemize}
-	\item Resource availability and jobs resource requirements
-	\item Link between jobs (some are executed in parallel and need synchronization, some are independant)
-	\item Latency between compute resources
-	\item Compute resources failures
-	\item Jobs priority
-	\item Machine shutdowns and restarts
-	\item Data locality
-\end{itemize}
+Kubernetes cluster simulations is an open problem and is the subject of this
+master project. Our approach relies on the Batsim\cite{batsim} infrastructure
+simulator, which is itself built upon Simgrid\cite{simgrid}. Batsim is
+currently mostly used to simulate HPC infrastructures but was designed to be
+able to simulate any kind of infrastructure and therefore is theoretically able
+to simulate any Kubernetes cluster, moreover, Kubernetes was designed to run
+services but is capable of handling High-Performance
+Computing\cite{kube-for-hpc}. This project aims at adapting Batsim so it can
+evaluate Kuberenetes schedulers.
 
-All these elements make scheduling a very intricate problem that is at best
-polynomial in complexity, and often NP-hard\cite{scheduler-complexity}.
-Moreover, with the growing complexity of modern RJMS\footnote{The RJMS
-	(Resource and Job Management System) is the software at the core of the
-	cluster. It is a synonym for a scheduler and manages resources, energy
-	consumption, users' jobs life-cycle and implements scheduling
-	policies.} and the wide variety in infrastructures, scheduler
-performances are rather inpredictable.
+\section{Kubernetes schedulers}
 
-\subsection{The need for an infrastructure simulator}
- 
-TODO 
+\subsubsection*{kube-scheduler}
+Not exactly a batch scheduler, it is the default scheduler for Kubernetes made
+by the CNCF"" --> "hop là"
+\subsubsection*{kube-batch}
+\subsubsection*{Poseidon}
+\subsubsection*{bashScheduler by rothgar}
+\subsubsection*{random-scheduler by Banzaicloud}
+\subsubsection*{k8s-custom-scheduler by IBM}
+\subsubsection*{scheduler by kelseyhightower}
 
-The complexity of the schedulinng problem and the high cost of running real
-world scenarios makes the use of a simulator almost mandatory when evaluating
-scheduling policies or developing a new scheduler. Indeed, modeling a scheduler
-and its interactions with a given infrastructure and workload is far too
-difficult for modern software and infrastructure.
-
+\chapter{Implementation}
 \section{Batsim}
 
 \section{Kubernetes}
-\subsection{Kubernetes overview}
-\subsubsection{Cloud Native Computing}
+\subsection*{Kubernetes overview}
 In the early stages of application development, organizations used to run their
 services on physical servers. With this direct approach came many challenges
 that needed to be coped with manually like resources allocation,
@@ -312,8 +369,6 @@ automating of the process of deploying, maintaining and scaling containerized
 applications. It is industry grade and is now the de-facto solution for
 container orchestration.
 
-
-\subsubsection{Kubernetes concepts}
 The basic processing unit of Kubernetes is called a \textbf{pod} which is
 composed of one or several containers and volumes\footnote{A volume is some
 	storage space on the host machine that can be linked to containers, so
@@ -351,7 +406,7 @@ operations.
 \end{figure}
 
 \newpage % hotfix for problematic figure placement
-\subsection{HPC and Kubernetes}
+\subsection*{HPC and Kubernetes}
 The difference between HPC and Cloud Native computing lies in the workloads
 they are intended to tackle.  Kubernetes was designed for Cloud Native
 applications. Services or micro services are run in containers and are expected
@@ -398,38 +453,6 @@ queuing system, and support for MPI applications. It cannot yet compete against
 the very well established HPC ecosystem, but that time may come soon as
 containers are becoming more and more integrated in modern infrastructures.
 
-\chapter{State of the art}
-\section{Infrastructure simulators}
-
-Developing a scheduler implies being able to test its performances throughout
-the development process, however, testing in real conditions is time consuming
-and expensive.  Organizations can either have enough resources to cover these
-costs, or test their scheduler against a simulation.\\
-
-Kubernetes cluster simulations is an open problem and is the subject of this
-master project. Our approach relies on the Batsim\cite{batsim} infrastructure
-simulator, which is itself built upon Simgrid\cite{simgrid}. Batsim is
-currently mostly used to simulate HPC infrastructures but was designed to be
-able to simulate any kind of infrastructure and therefore is theoretically able
-to simulate any Kubernetes cluster, moreover, Kubernetes was designed to run
-services but is capable of handling High-Performance
-Computing\cite{kube-for-hpc}. This project aims at adapting Batsim so it can
-evaluate Kuberenetes schedulers.
-
-\section{Kubernetes schedulers}
-
-\subsubsection{kube-scheduler}
-Not exactly a batch scheduler, it is the default scheduler for Kubernetes made
-by the CNCF"" --> "hop là"
-\subsubsection{kube-batch}
-\subsubsection{Poseidon}
-\subsubsection{bashScheduler by rothgar}
-\subsubsection{random-scheduler by Banzaicloud}
-\subsubsection{k8s-custom-scheduler by IBM}
-\subsubsection{scheduler by kelseyhightower}
-
-\chapter{Problematic}
-
 \section{Objectives}
 
 The goal of this project is to design and implement Batkube, which will be an
@@ -437,20 +460,11 @@ interface between Batsim and Kubernetes schedulers. With this interface, we
 want to compare Batsim results gainst data from a real Kubernetes cluster,
 given HPC workloads.
 
-\section{Translation}
-
-\section{Synchronization}
-
-\chapter{Implementation}
-
-\section{Batkube architecture}
+\section{Technical challenges}
+\subsection{Translation}
+\subsection{Time hijack}
 TODO
 
-\section{API implementation}
-\section{Time hijack}
-TODO
-
-\subsection{batsky-go}
 \SetKwInput{KwInput}{Input}
 \SetKwInput{KwOutput}{Output}
 
@@ -498,7 +512,7 @@ return now\;
 \label{alg:now}
 \end{algorithm}
 
-
+\subsection{Re-building the API}
 
 \chapter{Evaluation}
 
