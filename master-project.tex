@@ -181,32 +181,30 @@ Good luck :)
 \SingleSpace
 
 \chapter{Introduction}
-\section{The increasing demand in computing infrastructures}
 
-Computation is everywhere in our interconnected world. The online service
-industry is now omnipresent (one could even say, omniscient) in our daily lifes
-, and GAFAs now require massive amounts of computational power and storage. We
-cannot know for sure how much data it represents now - we can always try to
-guess \footnote{https://what-if.xkcd.com/63/} - as these companies do not
-disclose statistics on their size, however a study\cite{andrae2017total} has
-shown global electricity usage for the information and communications
-technology field could rise to a fifth of the global electricity usage by 2025
-despite the great breakthroughs in building energy efficient computing. This
-alone shows how much the demand in infrasctucture (both in storage and
-computing power) is increasing.
-Surveys\footnote{https://www.idg.com/tools-for-marketers/2018-cloud-computing-survey/}
-confirm the trend that the infrastructure as a service (IaaS) market is
-growing, showing that the demand in infrastructure is increasing - also partly
-because IaaS makes scaling and managing infrastructures easier than ever
-before. 
+\section{Studying computing infrastructures}
 
+The need for scalable infrastructure for computing has increased tremendously
+in the last decades.  Nearly every field of computer science, from research to
+the service industry now needs a proper infrastructure at some point to run
+their models or ensure high availability of their servers to the clients. Even
+the public sector is now in need for efficient distributed infrastructure as
+the concept of ``smart cities'' is developing.
 
-TODO : 
-demand in industry, research, services, public domain, cryptocurrencies
-types of infra : hpc, hpda, gpu farms, distributed systems
+Organizations know what type of infrastructure will meet their needs. It may be
+storage facilities to store and analyze data, high-performance computers (HPC)
+in order to calculate models for the industry or run large scale simulations
+for research, or pools of GPUs designed to compute cryptocurrency transactions
+and deep learning models.
 
-\section{Studying infrastructures through simulation}
-TODO virgin real life experiments vs chad simulated scenarios
+However, knowing how much of these infrastructures to have and what software to
+run it with is a much harder problem. The most direct approach to this problem
+is running real life experiments with real workloads, which gives exactly what
+you could expect from your infrastructure. This comes with an obvious issue : it
+quickly becomes very costly both in time and resources as the infrastructure
+grows in size - To illustrate the size these computers may reach, Google calls
+these infrastructures wharehouse-scale computers\cite{barroso2018datacenter}.
+
 
 \section{Contribution}
 Batkube, and interface between Batsim infrastructure simulator and Kubernetes
@@ -295,20 +293,20 @@ Batkube, and interface between Batsim infrastructure simulator and Kubernetes
 \chapter{State of the art}
 \section{Infrastructure simulators}
 
-Developing a scheduler implies being able to test its performances throughout
-the development process, however, testing in real conditions is time consuming
-and expensive.  Organizations can either have enough resources to cover these
-costs, or test their scheduler against a simulation.\\
-
-Kubernetes cluster simulations is an open problem and is the subject of this
-master project. Our approach relies on the Batsim\cite{batsim} infrastructure
-simulator, which is itself built upon Simgrid\cite{simgrid}. Batsim is
-currently mostly used to simulate HPC infrastructures but was designed to be
-able to simulate any kind of infrastructure and therefore is theoretically able
-to simulate any Kubernetes cluster, moreover, Kubernetes was designed to run
-services but is capable of handling High-Performance
-Computing\cite{kube-for-hpc}. This project aims at adapting Batsim so it can
-evaluate Kuberenetes schedulers.
+%Developing a scheduler implies being able to test its performances throughout
+%the development process, however, testing in real conditions is time consuming
+%and expensive.  Organizations can either have enough resources to cover these
+%costs, or test their scheduler against a simulation.\\
+%
+%Kubernetes cluster simulations is an open problem and is the subject of this
+%master project. Our approach relies on the Batsim\cite{batsim} infrastructure
+%simulator, which is itself built upon Simgrid\cite{simgrid}. Batsim is
+%currently mostly used to simulate HPC infrastructures but was designed to be
+%able to simulate any kind of infrastructure and therefore is theoretically able
+%to simulate any Kubernetes cluster, moreover, Kubernetes was designed to run
+%services but is capable of handling High-Performance
+%Computing\cite{kube-for-hpc}. This project aims at adapting Batsim so it can
+%evaluate Kuberenetes schedulers.
 
 \section{Kubernetes schedulers}
 
@@ -336,12 +334,12 @@ services regardless of physical infrasctucture while having a better control
 over resources allocation.  This led to the concept of containers which takes
 the idea of encapsulated applications further.
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{./imgs/container_evolution.png}
-	\captionsource{Evolution of application deployment.}{https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/}
-	\label{fig:container-evolution}
-\end{figure}
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[width=\textwidth]{./imgs/container_evolution.png}
+%	\captionsource{Evolution of application deployment.}{https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/}
+%	\label{fig:container-evolution}
+%\end{figure}
 
 Containers can be thought of as lightweight virtual machines. Unlike the
 latter, containers share the same kernel with the host machine but still allow
