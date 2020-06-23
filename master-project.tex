@@ -186,28 +186,64 @@ Good luck :)
 
 The need for scalable infrastructure for computing has increased tremendously
 in the last decades.  Nearly every field of computer science, from research to
-the service industry now needs a proper infrastructure at some point to run
+the service industry, now needs a proper infrastructure at some point to run
 their models or ensure high availability of their servers to the clients. Even
 the public sector is now in need for efficient distributed infrastructure as
-the concept of ``smart cities'' is developing.
+the concept of smart cities is developing.
 
 Organizations know what type of infrastructure will meet their needs. It may be
 storage facilities to store and analyze data, high-performance computers (HPC)
 in order to calculate models for the industry or run large scale simulations
 for research, or pools of GPUs designed to compute cryptocurrency transactions
 and deep learning models.
-
 However, knowing how much of these infrastructures to have and what software to
-run it with is a much harder problem. The most direct approach to this problem
-is running real life experiments with real workloads, which gives exactly what
-you could expect from your infrastructure. This comes with an obvious issue : it
-quickly becomes very costly both in time and resources as the infrastructure
-grows in size - To illustrate the size these computers may reach, Google calls
-these infrastructures wharehouse-scale computers\cite{barroso2018datacenter}.
+run it with is a very difficult issue to tackle. Indeed, running real life
+experiments with real workloads quickly becomes very costly both in time and
+resources as the infrastructure grows in size - To illustrate the size these
+computers may reach, Google calls these infrastructures warehouse-scale
+computers\cite{barroso2018datacenter}.  Moreover, when running benchmarks or
+experiments on such computers we want to quantify its performance under varying
+loads, scheduling policies, applications or system size, thus multiplying the
+number of iterations of the same costly and time consuming experiment.  Also,
+as in any scientific experiments, real world cases come with their share of
+unexpected events and uncontrollable elements which make the experiences
+sometimes hardly reproducible.
+
+In order to cope with this reproducibility issue researchers and engineers rely
+on simulations to evaluate different infrastructures and scheduling policies.
+Such simulations allow to run a wide range of test cases in a split second on
+thanks to simulated workloads and platforms that could take hours, days or
+months - an arbitrary amount of time, as a matter of fact - with real
+workloads. These simulations are also easily reproducible as they can run on
+any personal computer, thus vastly aiding in the development of new resource
+management software and engineering of better infrastructure.
 
 
 \section{Contribution}
-Batkube, and interface between Batsim infrastructure simulator and Kubernetes
+
+Our contribution to the infrastructure simulation world is focused on
+distributed systems, which is closely tied to cloud computing. Cloud computing
+can be defined as ``a  type  of  parallel  and  distributed system  consisting
+of  a collection  of  inter-connected  and  virtualised  computers  that  are
+dynamically provisioned and presented as one or more unified computing
+resources based on service-level  agreements  established  through negotiation
+between  the  service  provider  and consumers.''\cite{4637675}. Clouds have
+changed the way we see infrastructures as they are no longer physical and local
+machines : they represent resources that you can access on demand from a remote
+place.  These systems are referred to as Infrastructure as a Service (IaaS),
+Platform as a Service (PaaS) or Software as a Service (SaaS). All these
+services allow users to easily leverage complete computing ecosystems without
+spending substantial time and resources in order to build and operate them.
+
+We have focused our efforts on
+Kubernetes\footnote{\url{https://kubernetes.io/}} which is a piece of software
+aiming at providing such environment. It automates processes such as scaling,
+maintaining and updating your infrastructure with a relative ease of
+administration. It has now become a standard in distributed systems and cloud
+applications and is now invading the world of Machine Learning. %TODO : a little reference here?
+
+
+
 %\subsection{A bit of context : High Performance Computing}
 %
 %TODO
@@ -233,63 +269,7 @@ Batkube, and interface between Batsim infrastructure simulator and Kubernetes
 %becomes very sensitive to latency as these tasks have got to communicate
 %together. This is done through MPIs (Message Passing Interfaces) which
 %represent a large part of the HPC field.\\
-%
-%\subsection{The scheduling problem}
-%\begin{displayquote}[][]
-%	\textbf{schedule} \textit{n.} : A plan for
-%	performing work or achieving an objective, specifying the order and
-%	allotted time for each part.
-%\end{displayquote}
-%
-%In a general way, scheduling is the concept of allocating available resources
-%to a set of tasks, organizing them in time and space (the resource space). The
-%resources can be of any nature, and the tasks independant from each others or
-%linked together.
-%
-%In computing the definition remains the same, but with automation in mind.
-%Schedulers are algorithms that take as an input either a pre-defined workload,
-%which is a set of jobs  to be executed - the tasks are called jobs in this
-%context -, or simple jobs submitted over time by users in an unpredictable
-%manner. In the latter case, the jobs are added to a queue managed by the
-%scheduler. Scheduling is also called batch scheduling or batch processing, as
-%schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
-%virtual or physical, with the intent of minimizing the total execution time,
-%equally distributing resources, minimizing wait time for the user or reducing
-%energy costs. As these objectives often contradict themselves, schedulers have
-%to implement compromises or focus on what the user really needs or requires.  
-%
-%The scheduler has many factors to keep in mind while trying to be as efficient
-%as possible, such as :
-%
-%\begin{itemize}
-%	\item Resource availability and jobs resource requirements
-%	\item Link between jobs (some are executed in parallel and need synchronization, some are independant)
-%	\item Latency between compute resources
-%	\item Compute resources failures
-%	\item Jobs priority
-%	\item Machine shutdowns and restarts
-%	\item Data locality
-%\end{itemize}
-%
-%All these elements make scheduling a very intricate problem that is at best
-%polynomial in complexity, and often NP-hard\cite{scheduler-complexity}.
-%Moreover, with the growing complexity of modern RJMS\footnote{The RJMS
-%	(Resource and Job Management System) is the software at the core of the
-%	cluster. It is a synonym for a scheduler and manages resources, energy
-%	consumption, users' jobs life-cycle and implements scheduling
-%	policies.} and the wide variety in infrastructures, scheduler
-%performances are rather inpredictable.
-%
-%\subsection{The need for an infrastructure simulator}
-% 
-%TODO 
-%
-%The complexity of the schedulinng problem and the high cost of running real
-%world scenarios makes the use of a simulator almost mandatory when evaluating
-%scheduling policies or developing a new scheduler. Indeed, modeling a scheduler
-%and its interactions with a given infrastructure and workload is far too
-%difficult for modern software and infrastructure.
-%
+
 \chapter{State of the art}
 \section{Infrastructure simulators}
 
@@ -321,6 +301,52 @@ by the CNCF"" --> "hop là"
 \subsubsection*{scheduler by kelseyhightower}
 
 \chapter{Implementation}
+\section{The scheduling problem}
+\begin{displayquote}[][]
+	\textbf{schedule} \textit{n.} : A plan for
+	performing work or achieving an objective, specifying the order and
+	allotted time for each part.
+\end{displayquote}
+
+In a general way, scheduling is the concept of allocating available resources
+to a set of tasks, organizing them in time and space (the resource space). The
+resources can be of any nature, and the tasks independent from each others or
+linked together.
+
+In computing the definition remains the same, but with automation in mind.
+Schedulers are algorithms that take as an input either a pre-defined workload,
+which is a set of jobs  to be executed - the tasks are called jobs in this
+context -, or simple jobs submitted over time by users in an unpredictable
+manner. In the latter case, the jobs are added to a queue managed by the
+scheduler. Scheduling is also called batch scheduling or batch processing, as
+schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
+virtual or physical, with the intent of minimizing the total execution time,
+equally distributing resources, minimizing wait time for the user or reducing
+energy costs. As these objectives often contradict themselves, schedulers have
+to implement compromises or focus on what the user really needs or requires.  
+
+The scheduler has many factors to keep in mind while trying to be as efficient
+as possible, such as :
+
+\begin{itemize}
+	\item Resource availability and jobs resource requirements
+	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
+	\item Latency between compute resources
+	\item Compute resources failures
+	\item Jobs priority
+	\item Machine shutdowns and restarts
+	\item Data locality
+\end{itemize}
+
+All these elements make scheduling a very intricate problem that is at best
+polynomial in complexity, and often NP-hard\cite{scheduler-complexity}.
+Moreover, with the growing complexity of modern RJMS\footnote{The RJMS
+	(Resource and Job Management System) is the software at the core of the
+	cluster. It is a synonym for a scheduler and manages resources, energy
+	consumption, users' jobs life-cycle and implements scheduling
+	policies.} and the wide variety in infrastructures, scheduler
+performances are rather unpredictable.
+
 \section{Batsim}
 
 \section{Kubernetes}
@@ -330,7 +356,7 @@ services on physical servers. With this direct approach came many challenges
 that needed to be coped with manually like resources allocation,
 maintainability or scalability. In an attempt to automate this process
 developers started using virtual machines which enabled them to run their
-services regardless of physical infrasctucture while having a better control
+services regardless of physical infrastructure while having a better control
 over resources allocation.  This led to the concept of containers which takes
 the idea of encapsulated applications further.
 
