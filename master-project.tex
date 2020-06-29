@@ -91,7 +91,7 @@
 \begin{center}\juryB \bigskip\sessionB\end{center}
 \vspace{-1.5cm}}
 \renewcommand{\maketitlehooka}{% 
-	\vspace{-1.5cm}\noindent\includegraphics[height=12ex]{./imgs/uga-logo.png}\hfill\raisebox{2ex}{\includegraphics[height=14ex]{./imgs/ENSIMAG.png}}\\
+	\vspace{-1.5cm}\noindent\includegraphics[height=10ex]{./imgs/uga-logo.png}\hfill\includegraphics[height=10ex]{./imgs/ryax-logo.png}\hfill\includegraphics[height=10ex]{./imgs/Logo-LIG.jpg}\hfill\includegraphics[height=12ex]{./imgs/ENSIMAG.png}
 \bigskip
 \begin{center} \large
 Master of Science in Informatics at Grenoble \\
@@ -182,84 +182,83 @@ Good luck :)
 
 \chapter{Introduction}
 
-The need for scalable infrastructure for computing has increased tremendously
-in the last decades.  Nearly every field of computer science, from research to
-the service industry, now needs a proper infrastructure at some point to run
-their models or ensure high availability of their servers to the clients. Even
-the public sector is now in need for efficient distributed infrastructure as
-the concept of smart cities is developing.
+The need for scalable computing infrastructure has increased tremendously in
+the last decades. Nearly every field of computer science, from research to the
+service industry, now needs a proper infrastructure and by 2025, computation
+technology could reach a fourth of the global electricity
+spending\cite{andrae2017total}.  Even the public sector is now in need for
+efficient distributed infrastructure as the concept of smart cities is
+developing.
 
-Organizations generally know what type of infrastructure will meet their needs,
-be it Big Data centers to store and analyze data, HPC to run simulations or and
-models for research or the industry, or GPU banks for machine learning and
-crypto-currency mining.  However studying those infrastructures extensively,
-for example in order to determine the size of the required system or choose
-optimal scheduling policies, is much more challenging.  As these computers
-reach scales in the order of warehouses\cite{barroso2018datacenter} quantifying
-a system's performance under varying loads, applications, scheduling policies
-and system size quickly becomes tremendously hard.\\
+Organizations generally know what type of infrastructure will meet their needs.
+It can take the form of Big Data centers to store and analyze data,
+High-Performance Computers for computing intensive tasks or GPU banks for
+machine learning or crypto-currency mining.  However, studying those
+infrastructures extensively is much more challenging.  As these computers reach
+scales in the order of warehouses\cite{barroso2018datacenter}, quantifying a
+system's performance under varying loads, applications, scheduling policies and
+system size quickly becomes undoable without expensive real world experiments.
+In fact, the nature of scheduling problems\cite{scheduler-complexity} alone
+make theoretical studies hard.  This is an issue for organizations as they rely
+on thoses studies to determine the size of the required system or choose
+optimal scheduling
+policies.\\
 
 Simulation allows to tackle these issues by enabling users to draw conclusions
 empirically without the need to fire up real workloads. Indeed, running an
-entire experiment campaign on a real system is impossible for most due to large
-overhead and consequent costs both in time and money. With simulation, The gain
-in time and spent energy can be quite extreme : a HPC job spanning months on a
-real system can be resolved in a matter of minutes, on any domestic computer.
-Another major point is that it also brings reproducibility to these
+entire experimental campaign on a real system is impossible for most due to
+large overhead and consequent costs both in time and money. With simulation,
+The gain in time and spent energy can be extreme : a HPC job spanning
+months on a real system can be resolved in a matter of minutes on any domestic
+computer.  Another major point is that it also brings reproducibility to these
 experiments, that otherwise would have to be run on the exact same systems as
-their first iteration. With simulation, one can recreate the same conditions in
-an experiment anywhere they want, and expect the same results.\\
+their first iteration. With simulation, one can recreate the same conditions
+for any experiment anywhere they want, and expect the same results.\\
 
 However, simulations need to be run with sound models for the results to be
 exploitable and in that regard, simulators usually fall under several
-fitfalls\cite{poquet:tel-01757245}. Very often simulators are implemented at
+pitfalls\cite{poquet:tel-01757245}. Very often simulators are implemented at
 the same time as new schedulers or Resource and Jobs Management
 Systems\footnote{The RJMS is the software at the core of the cluster. It is a
 synonym for a scheduler and manages resources, energy consumption, users' jobs
-life-cycle and implements scheduling policies.} to validate the algorithms, and
-thus are strongly coupled together. Consequently, those simulators are not
-usable with any other algorithm and are either shipped with the software itself
-or worst, are never released and discarded at the end of the development
-process. Moreover, still according to  \cite{poquet:tel-01757245}, strong
-coupling may lead to unrealistic models, because then cluster resources can be
-accessed with ease by the scheduler resulting in it having very precise
-information about the system to take decisions, all that at a high frequency.
-This conflicts with the real world as a scheduler may not have access to all
-the information it wants, and also can suffer from latency when getting it from
-the system.
+life-cycle and implements scheduling policies.} in order to validate their
+algorithms. Thus, they are strongly coupled together and are not usable with
+any other software. They are either shipped with the software itself or worst,
+they are never released and discarded at the end of the development process.
+Moreover, still according to \cite{poquet:tel-01757245}, strong coupling may
+lead to unrealistic models. In that case cluster resources can be accessed with
+ease by the scheduler, resulting in it having very precise information about the
+system state to take its decisions.  This conflicts with the real world as a
+scheduler may not have access to all the information it wants, or may suffer
+from latency when getting it from the system.\\
 
-To try and assess these issues and many others not described in this
-introduction, a team of researchers at the LIG developed
+To try and assess these issues a team of researchers at the LIG developed
 Batsim\cite{dutot:hal-01333471} which is a general purpose infrastructure
-simulator with modularity and separation of concerns in mind.
+simulator with modularity and separation of concerns in mind. Batsim is based
+on SimGrid\cite{casanova:hal-01017319} which is a framework for developing
+simulators for distributed computer systems. Simgrid is now a 20 years old
+framework that has been used in many
+projects\footnote{https://simgrid.org/usages.html}, making it a sound choice to
+run scalable and accurate models of the reality.
 
-TODO
+Batsim was designed to support algorithms written in any languages, as long as
+they support its communication protocol. It means that, while any scheduler
+found in the wild can potentially be run on a Batsim simulation, they still
+have to be adapted to make them compatible. This master's project is dedicated
+on developing an interface between Batsim and
+Kubernetes\footnote{https://github.com/kubernetes/kubernetes/} schedulers in
+order to run Kubernetes clusters simulations. Kube\footnote{Another term to
+designate Kubernetes. It is also sometimes called k8s.} is an open source
+container management software originally developed by Google and then taken
+over by the Cloud Native Computing Fundation\footnote{https://www.cncf.io/}
+(CNCF), widely exploited in the industry for its ease of use and wide range of
+capabilities. It has freed developers from the cumbersome task of setting up
+low level software infrastructure on their servers and automates maintenance,
+scaling and administration of their applications. For all these reasons it has
+become a de-facto solution for any organization that wishes to build new
+internet platforms from the ground up.\\
 
-
-
-
-%Our contribution to the infrastructure simulation world is focused on
-%distributed systems, which is closely tied to cloud computing. Cloud computing
-%can be defined as ``a  type  of  parallel  and  distributed system  consisting
-%of  a collection  of  inter-connected  and  vitalized  computers  that  are
-%dynamically provisioned and presented as one or more unified computing
-%resources based on service-level  agreements  established  through negotiation
-%between  the  service  provider  and consumers.''\cite{4637675}. Clouds have
-%changed the way we see infrastructures as they are no longer physical and local
-%machines : they represent resources that you can access on demand from a remote
-%place.  These systems are referred to as Infrastructure as a Service (IaaS),
-%Platform as a Service (PaaS) or Software as a Service (SaaS). All these
-%services allow users to easily leverage complete computing ecosystems without
-%spending substantial time and resources in order to build and operate them.
-%
-%We have focused our efforts on
-%Kubernetes\footnote{\url{https://kubernetes.io/}} which is a piece of software
-%aiming at providing such environment. It automates processes such as scaling,
-%maintaining and updating your infrastructure with a relative ease of
-%administration. It has now become a standard in distributed systems and cloud
-%applications and is now invading the world of Machine Learning. %TODO : a little reference here?
-
-
+TODO : what we where able to do (summary of the simulator capabilities, experimentations, results)
 
 %\subsection{A bit of context : High Performance Computing}
 %
