@@ -129,7 +129,7 @@ Jury member 2\\
 \renewcommand{\abstracttextfont}{\normalfont}
 \abstractintoc
 \begin{abstract} 
-	TODO : remove the focus on HPC
+	TODO : rework this with the new intro
 
 
 	The rise of containerized applications has provided web platforms with
@@ -206,14 +206,14 @@ policies.\\
 
 Simulation allows to tackle these issues by enabling users to draw conclusions
 empirically without the need to fire up real workloads. Indeed, running an
-entire experimental campaign on a real system is impossible for most due to
-large overhead and consequent costs both in time and money. With simulation,
-The gain in time and spent energy can be extreme : a HPC job spanning
-months on a real system can be resolved in a matter of minutes on any domestic
-computer.  Another major point is that it also brings reproducibility to these
-experiments, that otherwise would have to be run on the exact same systems as
-their first iteration. With simulation, one can recreate the same conditions
-for any experiment anywhere they want, and expect the same results.\\
+entire experimental campaign on a real system represents consequencial costs
+both in time and money. With simulation, The gain in both time and spent energy
+can be extreme : a HPC job spanning months on a real system can be resolved in
+a matter of minutes on any domestic computer.  Another major point is that it
+also brings reproducibility to these experiments, that otherwise would have to
+be run on the exact same systems as their first iteration. With simulation, one
+can recreate the same conditions for any experiment anywhere they want, and
+expect the same results.\\
 
 However, simulations need to be run with sound models for the results to be
 exploitable and in that regard, simulators usually fall under several
@@ -249,16 +249,15 @@ on developing an interface between Batsim and
 Kubernetes\footnote{https://github.com/kubernetes/kubernetes/} schedulers in
 order to run Kubernetes clusters simulations. Kube\footnote{Another term to
 designate Kubernetes. It is also sometimes called k8s.} is an open source
-container management software originally developed by Google and then taken
-over by the Cloud Native Computing Fundation\footnote{https://www.cncf.io/}
-(CNCF), widely exploited in the industry for its ease of use and wide range of
-capabilities. It has freed developers from the cumbersome task of setting up
-low level software infrastructure on their servers and automates maintenance,
-scaling and administration of their applications. For all these reasons it has
-become a de-facto solution for any organization that wishes to build new
-internet platforms from the ground up.\\
+container management software widely exploited in the industry for its ease of
+use and wide range of capabilities. It has freed developers from the cumbersome
+task of setting up low level software infrastructure on their servers and
+automates maintenance, scaling and administration of their applications. For
+all these reasons it has become a de-facto solution for any organization that
+wishes to build new internet platforms from the ground up.\\
 
-TODO : what we where able to do (summary of the simulator capabilities, experimentations, results)
+TODO : what we where able to do (summary of the simulator capabilities,
+experimentations, results)
 
 %\subsection{A bit of context : High Performance Computing}
 %
@@ -287,34 +286,8 @@ TODO : what we where able to do (summary of the simulator capabilities, experime
 %represent a large part of the HPC field.\\
 
 \chapter{State of the art}
-\section{Infrastructure simulators}
 
-%Developing a scheduler implies being able to test its performances throughout
-%the development process, however, testing in real conditions is time consuming
-%and expensive.  Organizations can either have enough resources to cover these
-%costs, or test their scheduler against a simulation.\\
-%
-%Kubernetes cluster simulations is an open problem and is the subject of this
-%master project. Our approach relies on the Batsim\cite{batsim} infrastructure
-%simulator, which is itself built upon Simgrid\cite{simgrid}. Batsim is
-%currently mostly used to simulate HPC infrastructures but was designed to be
-%able to simulate any kind of infrastructure and therefore is theoretically able
-%to simulate any Kubernetes cluster, moreover, Kubernetes was designed to run
-%services but is capable of handling High-Performance
-%Computing\cite{kube-for-hpc}. This project aims at adapting Batsim so it can
-%evaluate Kuberenetes schedulers.
-
-\section{Kubernetes schedulers}
-
-\subsubsection*{kube-scheduler}
-Not exactly a batch scheduler, it is the default scheduler for Kubernetes made
-by the CNCF"" --> "hop là"
-\subsubsection*{kube-batch}
-\subsubsection*{Poseidon}
-\subsubsection*{bashScheduler by rothgar}
-\subsubsection*{random-scheduler by Banzaicloud}
-\subsubsection*{k8s-custom-scheduler by IBM}
-\subsubsection*{scheduler by kelseyhightower}
+\section{Why simulation?}
 
 \chapter{Implementation}
 \section{The scheduling problem}
@@ -359,6 +332,7 @@ polynomial in complexity, and often NP-hard\cite{scheduler-complexity}.
 Moreover, with the growing complexity of modern RJMS and the wide variety in infrastructures, scheduler
 performances are rather unpredictable.
 
+\section{SimGrid}
 \section{Batsim}
 
 \section{Kubernetes}
@@ -550,6 +524,53 @@ now = $<$-resChannel \tcc{The code blocks here until response is sent by the req
 return now\;
 \caption{Time request (time.now())}
 \label{alg:now}
+\end{algorithm}
+
+
+\subsection{Time synchronisation}
+
+\begin{algorithm}[H]
+	\caption{Synchronisation with timers}
+	\label{alg:sync_timers}
+	\DontPrintSemicolon
+	\KwInput{timeout: time.Duration; simulationTimestep: time.Duration}
+
+	stopWaitingForMessages := false\;
+	\While{!stopWaitingForMessages}{
+		getTimerRequests() \tcc{Translate timers requested by the scheduler to CALL\_ME\_LATER events}
+		getSchedulerDecisions() \tcc{Translate scheduler decisions to Batsim messages}
+		\If{decisionReceived() or timeSinceLastMessage() > timeout}{
+			stopWaitingForMessages = true
+		}
+	}
+	\tcc{We keep track of all REQUESTED\_CALL events yet to come}
+	\If{durationToNextRequestedCall > simulationTimestep}{
+		addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + simulationTimestep
+		}
+	}
+\end{algorithm}
+
+\bigskip
+
+\begin{algorithm}[H]
+	\caption{Synchronisation with incremental time increases}
+	\label{alg:sync_timers}
+	\DontPrintSemicolon
+	\KwInput{simulationTimeout: time.Duration; incrementTimeStep: time.Duration; incrementValue: time.Duration}
+
+	stopWaitingForMessages := false\;
+	incremented := 0\;
+	\While{!stopWaitingForMessages}{
+		getSchedulerDecisions()\;
+		\If{decisionReceived() or incremented >= simulationTimeout}{
+			stopWaitingForMessages = true
+		}\ElseIf{timeSinceLastIncrement() > incrementTimeStep}{
+			\tcc{this last condition is here to slow down this process and give time for the scheduler to take its decisions}
+			now = now + incrementValue\;
+			incremented = incremented + incrementValue
+		}
+	}
+	addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + incrementValue}
 \end{algorithm}
 
 \subsection{Re-building the API}
