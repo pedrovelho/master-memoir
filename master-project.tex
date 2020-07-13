@@ -287,7 +287,36 @@ experimentations, results)
 
 \chapter{State of the art}
 
-\section{Why simulation?}
+%\section{Anatomy of a computing infrastructure}
+
+\section{The study of computing infrastructures}
+
+Studying an entire computing infrastructure is not an easy feat. A theoretical
+study is in most cases out of the question because of the NP-complete nature of
+scheduling problems (\cite{scheduler-complexity}
+\cite{10.1016/S0022-0000(75)80008-0}) and multiplicity of the different
+components at stake. There are as many types of infrastructure as there are use
+cases, each having a different vision on what being efficient means. The
+metrics to be accounted for vary from system to system: latency, resource
+availability, computational power, storage capacity, energy efficiency or cost
+effectiveness for example. This translates to the type of hardware used and how
+it is arranged in the infrastructure. Most systems are centralized like HPC,
+Data Centers or Cloud Computing infrastructures, some others lean more towards
+a (physically) decentralized structure like Grid Computing or Volunteer
+Computing or may be completely decentralized like Peer to Peer computing. There
+are as many systems as there are objectives to be achieved. As a consequence,
+scientific studies on these systems are conducted with \textit{ad hoc} tools
+that end up unmaintained or discarded at the end of the study, or based on real
+cases experiments that are both costly and hard to reproduce.
+
+The development of new Resource and Jobs Management Systems (RJMS) or Workflow
+Management Systems (WMS) is based on experiments to validate the models.
+Ideally, these experiments are conducted on real hardware to get the most
+accurate results as possible. However, real cases experiments come with large
+downsides : TODO
+
+
+
 
 \chapter{Implementation}
 \section{The scheduling problem}
