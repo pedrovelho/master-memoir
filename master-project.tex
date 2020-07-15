@@ -287,36 +287,62 @@ experimentations, results)
 
 \chapter{State of the art}
 
-%\section{Anatomy of a computing infrastructure}
+\section{Studying computer infrastructures}
 
-\section{The study of computing infrastructures}
+Studying an entire computing infrastructure is not an easy feat, first because
+every infrastructure is unique. There are as many types of infrastructure as
+there are use cases, each having a different vision on efficiency and what
+metrics are critical to the system: latency, resource availability,
+computational power, storage capacity, energy efficiency or cost effectiveness
+for example. This translates to the type of hardware used and the topology the
+infrastructure. Most systems are centralized like HPC, Data Centers or Cloud
+Computing infrastructures, some others lean more towards a (physically)
+decentralized structure like Grid Computing or Volunteer Computing or may be
+completely decentralized like Peer to Peer computing. There are as many systems
+as there are objectives to be achieved.
 
-Studying an entire computing infrastructure is not an easy feat. A theoretical
-study is in most cases out of the question because of the NP-complete nature of
-scheduling problems (\cite{scheduler-complexity}
-\cite{10.1016/S0022-0000(75)80008-0}) and multiplicity of the different
-components at stake. There are as many types of infrastructure as there are use
-cases, each having a different vision on what being efficient means. The
-metrics to be accounted for vary from system to system: latency, resource
-availability, computational power, storage capacity, energy efficiency or cost
-effectiveness for example. This translates to the type of hardware used and how
-it is arranged in the infrastructure. Most systems are centralized like HPC,
-Data Centers or Cloud Computing infrastructures, some others lean more towards
-a (physically) decentralized structure like Grid Computing or Volunteer
-Computing or may be completely decentralized like Peer to Peer computing. There
-are as many systems as there are objectives to be achieved. As a consequence,
+As a consequence, there are no general tools to study - that is to say run
+experiments on - those systems. Furthermore, as the biggest supercomputers are
+approaching the exascale
+barrier\footnote{https://www.top500.org/news/japan-captures-top500-crown-arm-powered-supercomputer/}
+and consist of thousands of nodes, no human would be capable of building a
+general mathematical model with millions of cpu cores (more than 7M for the new
+``Fugaku`` Japanese supercomputer) that would be accurate enough to predict the
+behavior of those systems under varying conditions. Also, scheduling problems
+are already NP-difficult on their own
+(\cite{scheduler-complexity},~\cite{10.1016/S0022-0000(75)80008-0}), meaning
+that a theoretical study would not scale well compared to real software that
+would be optimized for these kind of tasks.  Running experiments on real
+systems is another option, however it is expensive and poses major
+reproducibility issues because one would need access to the exact same system
+to re-run the experiments. This is why researchers now resort to simulation to
+validate their models. It is still an active area of research where some
+projects have versatility as their core concern, and most are \textit{ad-hoc}
+tools that are either unreleased or unmaintained.
+
+The next sections are mostly built upon \cite{legrand2015scheduling} and are
+aimed at depicting the current landscape of experimentation on distributed
+systems.
+
+\subsection{\textit{in vivo} and \textit{in vitro} studies}
+
+The most direct approach to study an infrastructure is running \textit{in vivo}
+experiments, that is to say running experiments on a real testbed. This will
+produce the most accurate results indeed, but it has two drawbacks that make
+this approach not realistic for extensive studies on big systems.
+
+TODO
+
+
+\subsection{\textit{in silico} studies, or simulation}
+
 scientific studies on these systems are conducted with \textit{ad hoc} tools
 that end up unmaintained or discarded at the end of the study, or based on real
 cases experiments that are both costly and hard to reproduce.
 
-The development of new Resource and Jobs Management Systems (RJMS) or Workflow
-Management Systems (WMS) is based on experiments to validate the models.
-Ideally, these experiments are conducted on real hardware to get the most
-accurate results as possible. However, real cases experiments come with large
-downsides : TODO
+TODO
 
-
-
+\subsection{Related general purpose simulators projects}
 
 \chapter{Implementation}
 \section{The scheduling problem}
