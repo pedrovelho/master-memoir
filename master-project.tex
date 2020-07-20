@@ -305,20 +305,26 @@ As a consequence, there are no general tools to study - that is to say run
 experiments on - those systems. Furthermore, as the biggest supercomputers are
 approaching the exascale
 barrier\footnote{https://www.top500.org/news/japan-captures-top500-crown-arm-powered-supercomputer/}
-and consist of thousands of nodes, no human would be capable of building a
-general mathematical model with millions of cpu cores (more than 7M for the new
-``Fugaku`` Japanese supercomputer) that would be accurate enough to predict the
-behavior of those systems under varying conditions. Also, scheduling problems
-are already NP-difficult on their own
-(\cite{scheduler-complexity},~\cite{10.1016/S0022-0000(75)80008-0}), meaning
-that a theoretical study would not scale well compared to real software that
-would be optimized for these kind of tasks.  Running experiments on real
-systems is another option, however it is expensive and poses major
-reproducibility issues because one would need access to the exact same system
-to re-run the experiments. This is why researchers now resort to simulation to
-validate their models. It is still an active area of research where some
-projects have versatility as their core concern, and most are \textit{ad-hoc}
-tools that are either unreleased or unmaintained.
+and consist of thousands of nodes with millions of cpu cores (more than 7M for
+the new ``Fugaku`` Japanese supercomputer), no human would be capable of
+building a general mathematical model that would be accurate enough to predict
+the behavior of those systems under varying conditions. Also, interactions
+between the various components of those systems may lead to unexpected
+behavior\cite{10.1007/978-3-319-09873-9_12} that can hardly be predicted.
+Then, in order to extensively experiment on a given system, there are 3 options
+left as described in \cite{legrand2015scheduling}: \textit{in vivo},
+\textit{in vitro} and \textit{in silico} studies, which correspond respectively
+to experiments on real testbeds, emulation and simulation.
+
+%The other option is
+%running experiments on real systems. However, it is expensive and poses major
+%reproducibility issues because one would need access to the exact same system
+%to re-run the experiments. This is why researchers now resort to simulation to
+%validate their models. 
+
+%It is still an active area of research where some
+%projects have versatility as their core concern, and most are \textit{ad-hoc}
+%tools that are either unreleased or unmaintained.
 
 The next sections are mostly built upon \cite{legrand2015scheduling} and are
 aimed at depicting the current landscape of experimentation on distributed
@@ -328,8 +334,8 @@ systems.
 
 The most direct approach to study an infrastructure is running \textit{in vivo}
 experiments, that is to say running experiments on a real testbed. This will
-produce the most accurate results indeed, but it has two drawbacks that make
-this approach not realistic for extensive studies on big systems.
+produce the most accurate results, but one can already guess this approach is
+not viable for extensive studies on the bigger systems.
 
 TODO
 
@@ -342,7 +348,23 @@ cases experiments that are both costly and hard to reproduce.
 
 TODO
 
-\subsection{Related general purpose simulators projects}
+Related projects : SimGrid, GridSim, CloudSim (to cite the most important).
+
+Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim,
+OverSim (peer to peer), WRENCH (workflows).
+
+Kubernetes simulation: k8-cluster-simulator, joySim.
+
+discontinued projects : GSSIM, Simbatch
+
+
+\section{Batsim, and related projects}
+
+TODO : General 
+
+\subsubsection{Aléa}
+
+\subsubsection{Accasim}
 
 \chapter{Implementation}
 \section{The scheduling problem}
