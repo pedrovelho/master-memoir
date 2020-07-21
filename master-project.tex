@@ -287,133 +287,8 @@ experimentations, results)
 
 \chapter{State of the art}
 
-\section{Studying computer infrastructures}
+\section{Context: Cloud Native Computing}
 
-Studying an entire computing infrastructure is not an easy feat, first because
-every infrastructure is unique. There are as many types of infrastructure as
-there are use cases, each having a different vision on efficiency and what
-metrics are critical to the system: latency, resource availability,
-computational power, storage capacity, energy efficiency or cost effectiveness
-for example. This translates to the type of hardware used and the topology the
-infrastructure. Most systems are centralized like HPC, Data Centers or Cloud
-Computing infrastructures, some others lean more towards a (physically)
-decentralized structure like Grid Computing or Volunteer Computing or may be
-completely decentralized like Peer to Peer computing. There are as many systems
-as there are objectives to be achieved.
-
-As a consequence, there are no general tools to study - that is to say run
-experiments on - those systems. Furthermore, as the biggest supercomputers are
-approaching the exascale
-barrier\footnote{https://www.top500.org/news/japan-captures-top500-crown-arm-powered-supercomputer/}
-and consist of thousands of nodes with millions of cpu cores (more than 7M for
-the new ``Fugaku`` Japanese supercomputer), no human would be capable of
-building a general mathematical model that would be accurate enough to predict
-the behavior of those systems under varying conditions. Also, interactions
-between the various components of those systems may lead to unexpected
-behavior\cite{10.1007/978-3-319-09873-9_12} that can hardly be predicted.
-Then, in order to extensively experiment on a given system, there are 3 options
-left as described in \cite{legrand2015scheduling}: \textit{in vivo},
-\textit{in vitro} and \textit{in silico} studies, which correspond respectively
-to experiments on real testbeds, emulation and simulation.
-
-%The other option is
-%running experiments on real systems. However, it is expensive and poses major
-%reproducibility issues because one would need access to the exact same system
-%to re-run the experiments. This is why researchers now resort to simulation to
-%validate their models. 
-
-%It is still an active area of research where some
-%projects have versatility as their core concern, and most are \textit{ad-hoc}
-%tools that are either unreleased or unmaintained.
-
-The next sections are mostly built upon \cite{legrand2015scheduling} and are
-aimed at depicting the current landscape of experimentation on distributed
-systems.
-
-\subsection{\textit{in vivo} and \textit{in vitro} studies}
-
-The most direct approach to study an infrastructure is running \textit{in vivo}
-experiments, that is to say running experiments on a real testbed. This will
-produce the most accurate results, but one can already guess this approach is
-not viable for extensive studies on the bigger systems.
-
-TODO
-
-
-\subsection{\textit{in silico} studies, or simulation}
-
-scientific studies on these systems are conducted with \textit{ad hoc} tools
-that end up unmaintained or discarded at the end of the study, or based on real
-cases experiments that are both costly and hard to reproduce.
-
-TODO
-
-Related projects : SimGrid, GridSim, CloudSim (to cite the most important).
-
-Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim,
-OverSim (peer to peer), WRENCH (workflows).
-
-Kubernetes simulation: k8-cluster-simulator, joySim.
-
-discontinued projects : GSSIM, Simbatch
-
-
-\section{Batsim, and related projects}
-
-TODO : General 
-
-\subsubsection{Aléa}
-
-\subsubsection{Accasim}
-
-\chapter{Implementation}
-\section{The scheduling problem}
-\begin{displayquote}[][]
-	\textbf{schedule} \textit{n.} : A plan for
-	performing work or achieving an objective, specifying the order and
-	allotted time for each part.
-\end{displayquote}
-
-In a general way, scheduling is the concept of allocating available resources
-to a set of tasks, organizing them in time and space (the resource space). The
-resources can be of any nature, and the tasks independent from each others or
-linked together.
-
-In computing the definition remains the same, but with automation in mind.
-Schedulers are algorithms that take as an input either a pre-defined workload,
-which is a set of jobs  to be executed - the tasks are called jobs in this
-context -, or simple jobs submitted over time by users in an unpredictable
-manner. In the latter case, the jobs are added to a queue managed by the
-scheduler. Scheduling is also called batch scheduling or batch processing, as
-schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
-virtual or physical, with the intent of minimizing the total execution time,
-equally distributing resources, minimizing wait time for the user or reducing
-energy costs. As these objectives often contradict themselves, schedulers have
-to implement compromises or focus on what the user really needs or requires.  
-
-The scheduler has many factors to keep in mind while trying to be as efficient
-as possible, such as :
-
-\begin{itemize}
-	\item Resource availability and jobs resource requirements
-	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
-	\item Latency between compute resources
-	\item Compute resources failures
-	\item Jobs priority
-	\item Machine shutdowns and restarts
-	\item Data locality
-\end{itemize}
-
-All these elements make scheduling a very intricate problem that is at best
-polynomial in complexity, and often NP-hard\cite{scheduler-complexity}.
-Moreover, with the growing complexity of modern RJMS and the wide variety in infrastructures, scheduler
-performances are rather unpredictable.
-
-\section{SimGrid}
-\section{Batsim}
-
-\section{Kubernetes}
-\subsection*{Kubernetes overview}
 In the early stages of application development, organizations used to run their
 services on physical servers. With this direct approach came many challenges
 that needed to be coped with manually like resources allocation,
@@ -460,6 +335,153 @@ automating of the process of deploying, maintaining and scaling containerized
 applications. It is industry grade and is now the de-facto solution for
 container orchestration.
 
+\section{Studying computer infrastructures}
+
+Studying an entire computing infrastructure is not an easy feat, first because
+every infrastructure is unique. There are as many types of infrastructure as
+there are use cases, each having a different vision on efficiency and what
+metrics are critical to the system: latency, bandwith, resource availability,
+computational power or cost effectiveness (the latter boils down to energy
+efficiency). This variety of purposes translates to the type of hardware used
+and the topology the infrastructure. Some systems are centralized like HPC and
+Data Centers, others are meant to be used from a distance like Cloud Computing
+infrastructures and others are decentralized like Grid Computingn Volunteer
+Computing and Peer to Peer computing. There are as many systems as there are
+objectives to be achieved.
+
+As a consequence, there are no general tools to study those systems.
+Furthermore, as the biggest supercomputers are approaching the exascale
+barrier\footnote{https://www.top500.org/news/japan-captures-top500-crown-arm-powered-supercomputer/}
+and consist of thousands of nodes with millions of cpu cores (more than 7M for
+the new ``Fugaku`` Japanese supercomputer), no human would be capable of
+building a general mathematical model that would be accurate enough to predict
+the behavior of those systems under varying conditions. Also, interactions
+between the various components of those systems may lead to unexpected
+behavior\cite{10.1007/978-3-319-09873-9_12} that can hardly be predicted.
+Then, in order to extensively experiment on a given system, there are 3 options
+left as described in \cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
+vitro} and \textit{in silico} studies, which correspond respectively to
+experiments on real testbeds, emulation and simulation.
+
+%The other option is
+%running experiments on real systems. However, it is expensive and poses major
+%reproducibility issues because one would need access to the exact same system
+%to re-run the experiments. This is why researchers now resort to simulation to
+%validate their models. 
+
+%It is still an active area of research where some
+%projects have versatility as their core concern, and most are \textit{ad-hoc}
+%tools that are either unreleased or unmaintained.
+
+The next sections build upon \cite{legrand2015scheduling} and
+\cite{casanova:hal-01017319} by the team behind the
+SimGrid\cite{casanova:hal-01017319} simulator, and are aimed at depicting the
+current landscape of experimentation on distributed systems.
+
+\subsubsection{\textit{in vivo} and \textit{in vitro} studies}
+
+The most direct approach to study an infrastructure is running \textit{in vivo}
+experiments, that is to say running experiments on a real testbed. This will
+produce the most accurate results, but one can already guess this approach is
+not viable for extensive studies on the bigger systems.
+
+TODO
+
+\subsubsection{\textit{in silico} studies, or simulation}
+
+Why: explained earlier.\\
+
+Problems with simulation: often unrealeased simulators, or designed for a specific project, or short lived (OptorSim) -> This is why Batsim was created.
+
+Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
+Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
+
+Related projects list (will definetly not include everything. This is not aimed at being a report on the entire simulation world).
+\begin{itemize}
+	\item SimGrid, GridSim, CloudSim, GroudSim (to cite the most important).
+	\item Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim, OverSim (peer to peer), WRENCH (workflows).
+	\item HPC simulation: off-line vs on-line
+	\item Interconnected networks Simulation: INSEE (environment for interconnected networks), SICOSYS. Aimed to be used with other tools like SIMICS to extend th ecapabilities.
+	\item Low level simulation: SIMICS, RSIM and SimOS (multiprocessor systems).
+	\item discontinued/old projects: GSSIM, Simbatch
+\end{itemize}
+
+\subsubsection{Kubernetes simulation}
+
+Kubernetes simulation: k8-cluster-simulator, joySim. FOCUS ON THAT
+
+\subsubsection{The scheduling problem}
+
+TODO: What to do with this section?
+
+In particular, this work is targeted at experimenting with scheduling in a
+distributed system driven by Kubernetes.
+
+\begin{displayquote}[][]
+	\textbf{schedule} \textit{n.} : A plan for
+	performing work or achieving an objective, specifying the order and
+	allotted time for each part.
+\end{displayquote}
+
+In a general way, scheduling is the concept of allocating available resources
+to a set of tasks, organizing them in time and space (the resource space). The
+resources can be of any nature, and the tasks independent from each others or
+linked together.
+
+In computing the definition remains the same, but with automation in mind.
+Schedulers are algorithms that take as an input either a pre-defined workload,
+which is a set of jobs  to be executed - the tasks are called jobs in this
+context -, or simple jobs submitted over time by users in an unpredictable
+manner. In the latter case, the jobs are added to a queue managed by the
+scheduler. Scheduling is also called batch scheduling or batch processing, as
+schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
+virtual or physical, with the intent of minimizing the total execution time,
+equally distributing resources, minimizing wait time for the user or reducing
+energy costs. As these objectives often contradict themselves, schedulers have
+to implement compromises or focus on what the user really needs or requires.  
+
+The scheduler has many factors to keep in mind while trying to be as efficient
+as possible, such as :
+
+\begin{itemize}
+	\item Resource availability and jobs resource requirements
+	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
+	\item Latency between compute resources
+	\item Compute resources failures
+	\item Jobs priority
+	\item Machine shutdowns and restarts
+	\item Data locality
+\end{itemize}
+
+All these elements make scheduling a very intricate problem that is at best
+polynomial in complexity, and often NP-hard (\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}).
+
+\section{Batsim concepts and objectives}
+
+TODO General concepts of batsim: Language agnostic, ease of use, aimed at
+experimenting on scheduling policies, deterministic (reproducibility is at the
+core of batsim), coarse grain simulation.
+
+\subsubsection{SimGrid}
+
+ TODO : Quick description of SimGrid objectives and general concepts. (General
+ purpose, large scale simulation).
+
+ Does this justify a whole subsection? Isn't a paragraph enough for this? I
+ don't need to dig deep into SimGrid inner mechanics as this work is at the
+ higher level.
+
+
+\subsubsection{Related projects}
+
+ Aléa and Accasim
+
+\chapter{Implementation}
+
+\section{Batsim}
+
+\section{Kubernetes concepts}
+
 The basic processing unit of Kubernetes is called a \textbf{pod} which is
 composed of one or several containers and volumes\footnote{A volume is some
 	storage space on the host machine that can be linked to containers, so
@@ -496,53 +518,52 @@ operations.
 	\label{fig:kube-components}
 \end{figure}
 
-\newpage % hotfix for problematic figure placement
-\subsection*{HPC and Kubernetes}
-The difference between HPC and Cloud Native computing lies in the workloads
-they are intended to tackle.  Kubernetes was designed for Cloud Native
-applications. Services or micro services are run in containers and are expected
-to be available at all times : they are replicated as many times as the user
-desires and restarted whenever a failure occurs. High availability is at the
-core of Kubernetes container management.  On the other hand, depending on
-scheduling policies, HPC is focused on user wait time, maximizing resource
-usage, optimizing energy costs... For instance, in case of failure, it is
-sometimes not sufficient to restart the single job that failed : the entire
-submission must be re-run if it is part of several jobs computed in parallel.
-
-Kubernetes is now the standard for AI and Machine Learning as shown by the many
-efforts at making this coupling an efficient
-environment\cite{lee2017design}\cite{233001}\cite{10.1145/3154842.3154845},
-which brought an increasing interest for container driven HPC aswell and
-Kubernetes for HPC in particular. Batch schedulers such as
-kube-batch\footnote{\url{https://github.com/kubernetes-sigs/kube-batch}} have
-been implemented for kube, and numerous HPC applications like
-slurm\footnote{\url{https://slurm.schedmd.com/containers.html}} now support containers as well.
-
-Indeed, containers have many advantages that HPC users can benefit from. Here
-are some notable ones:
-\begin{itemize}
-	\item First off, research has shown that Kuberenetes offer similar
-		performance to more standard bare metal HPC\cite{8950981}.
-	\item Users will get the same environment everywhere making up for a
-		uniform and standardized workplace.
-	\item Portability : users could seamlessly hop from one infrastructure
-		to another based on their needs and criteria like price,
-		performance, and capabilities rather than compatibility.
-	\item Encapsulation : HPC applications often rely on complex
-		dependencies that can be easily concealed into containers.
-\end{itemize}
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.5]{./imgs/hpc-container.jpg}
-	\captionsource{The container technology for HPC}{https://www.hpcwire.com/2019/09/19/kubernetes-containers-and-hpc/}
-	\label{fig:hpc-container}
-\end{figure}
-
-Despite all those advantages, Kubernetes is not ready yet to be used in proper
-HPC environment because it lacks vital components like a proper batch job
-queuing system, and support for MPI applications. It cannot yet compete against
-the very well established HPC ecosystem, but that time may come soon as
-containers are becoming more and more integrated in modern infrastructures.
+%\subsection{HPC and Kubernetes}
+%The difference between HPC and Cloud Native computing lies in the workloads
+%they are intended to tackle.  Kubernetes was designed for Cloud Native
+%applications. Services or micro services are run in containers and are expected
+%to be available at all times : they are replicated as many times as the user
+%desires and restarted whenever a failure occurs. High availability is at the
+%core of Kubernetes container management.  On the other hand, depending on
+%scheduling policies, HPC is focused on user wait time, maximizing resource
+%usage, optimizing energy costs... For instance, in case of failure, it is
+%sometimes not sufficient to restart the single job that failed : the entire
+%submission must be re-run if it is part of several jobs computed in parallel.
+%
+%Kubernetes is now the standard for AI and Machine Learning as shown by the many
+%efforts at making this coupling an efficient
+%environment\cite{lee2017design}\cite{233001}\cite{10.1145/3154842.3154845},
+%which brought an increasing interest for container driven HPC aswell and
+%Kubernetes for HPC in particular. Batch schedulers such as
+%kube-batch\footnote{\url{https://github.com/kubernetes-sigs/kube-batch}} have
+%been implemented for kube, and numerous HPC applications like
+%slurm\footnote{\url{https://slurm.schedmd.com/containers.html}} now support containers as well.
+%
+%Indeed, containers have many advantages that HPC users can benefit from. Here
+%are some notable ones:
+%\begin{itemize}
+%	\item First off, research has shown that Kuberenetes offer similar
+%		performance to more standard bare metal HPC\cite{8950981}.
+%	\item Users will get the same environment everywhere making up for a
+%		uniform and standardized workplace.
+%	\item Portability : users could seamlessly hop from one infrastructure
+%		to another based on their needs and criteria like price,
+%		performance, and capabilities rather than compatibility.
+%	\item Encapsulation : HPC applications often rely on complex
+%		dependencies that can be easily concealed into containers.
+%\end{itemize}
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[scale=0.5]{./imgs/hpc-container.jpg}
+%	\captionsource{The container technology for HPC}{https://www.hpcwire.com/2019/09/19/kubernetes-containers-and-hpc/}
+%	\label{fig:hpc-container}
+%\end{figure}
+%
+%Despite all those advantages, Kubernetes is not ready yet to be used in proper
+%HPC environment because it lacks vital components like a proper batch job
+%queuing system, and support for MPI applications. It cannot yet compete against
+%the very well established HPC ecosystem, but that time may come soon as
+%containers are becoming more and more integrated in modern infrastructures.
 
 \section{Objectives}
 
