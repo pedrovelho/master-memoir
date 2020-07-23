@@ -264,7 +264,13 @@ experimentations, results)
 
 \chapter{State of the art}
 
+TODO: maybe a summary of this section. (1 - kubernetes put in context, 2 -
+focus on the scheduling problem, 3 - studying computer infra in general, 4 -
+Batsim is a tool very well suited for answering the scheduling problem)
+
 \section{Context: Cloud Native Computing}
+
+TODO: small intro on this part to clarify that this is to put Kubernetes in context.
 
 In the early stages of application development, organizations used to run their
 services on physical servers. With this direct approach came many challenges
@@ -312,7 +318,62 @@ automating of the process of deploying, maintaining and scaling containerized
 applications. It is industry grade and is now the de-facto solution for
 container orchestration.
 
-\section{Studying computer infrastructures}
+TODO: outro to explain that eventhough this paradigm enabled developing new
+applications with ease, many questions remain: what infrastructure would be
+best suited for my application? how would different topologies and scheduling
+policies would affect performances?  First, let's talk about the scheduling
+problem (in general) because it is the focus of experimentation with Batsim,
+and then discuss the general problem of the study of computing infrastructures.
+
+\section{The scheduling problem}
+
+In particular, this work is targeted at experimenting with scheduling in a
+distributed system driven by Kubernetes. Here we present a general definition
+of scheduling, and the challenges it tackles.
+
+\begin{displayquote}[][]
+	\textbf{schedule} \textit{n.} : A plan for
+	performing work or achieving an objective, specifying the order and
+	allotted time for each part.
+\end{displayquote}
+
+In a general way, scheduling is the concept of allocating available resources
+to a set of tasks, organizing them in time and space (the resource space). The
+resources can be of any nature, and the tasks independent from each others or
+linked together.
+
+In computing the definition remains the same, but with automation in mind.
+Schedulers are algorithms that take as an input either a pre-defined workload,
+which is a set of jobs  to be executed, or single jobs submitted over time by
+users in an unpredictable manner (as it is most often the case with HPC for
+example). In the latter case, the jobs are added to a queue managed by the
+scheduler. Scheduling is also called batch scheduling or batch processing, as
+schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
+virtual or physical, with the intent of minimizing the total execution time,
+equally distributing resources, minimizing wait time for the user or reducing
+energy costs. As these objectives often contradict themselves so schedulers have
+to implement compromises or focus on what the user requires from the system.
+
+The scheduler has many factors to keep in mind while trying to be as efficient
+as possible, such as:
+
+\begin{itemize}
+	\item Resource availability and jobs resource requirements
+	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
+	\item Latency between compute resources
+	\item Compute resources failures
+	\item User defined jobs priority
+	\item Machine shutdowns and restarts
+	\item Data locality
+\end{itemize}
+
+All these elements make scheduling a very intricate problem that is at best
+polynomial in complexity, and often NP-hard (\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}).
+
+TODO: outro to the next section, before tackling the issue of job scheduling we
+must know how to study computing infra in general
+
+\section{Studying computer infrastructures} \label{study-computing-infra}
 
 Studying an entire computing infrastructure is not an easy feat, first because
 every infrastructure is unique. There are as many types of infrastructure as
@@ -376,53 +437,6 @@ list of simulators
 
 Kubernetes simulation: k8-cluster-simulator, joySim.
 
-\subsubsection{The scheduling problem}
-
-TODO: What to do with this section?
-
-In particular, this work is targeted at experimenting with scheduling in a
-distributed system driven by Kubernetes. Here we present a general definition
-of scheduling, and the challenges it tackles.
-
-\begin{displayquote}[][]
-	\textbf{schedule} \textit{n.} : A plan for
-	performing work or achieving an objective, specifying the order and
-	allotted time for each part.
-\end{displayquote}
-
-In a general way, scheduling is the concept of allocating available resources
-to a set of tasks, organizing them in time and space (the resource space). The
-resources can be of any nature, and the tasks independent from each others or
-linked together.
-
-In computing the definition remains the same, but with automation in mind.
-Schedulers are algorithms that take as an input either a pre-defined workload,
-which is a set of jobs  to be executed, or single jobs submitted over time by
-users in an unpredictable manner (as it is most often the case with HPC for
-example). In the latter case, the jobs are added to a queue managed by the
-scheduler. Scheduling is also called batch scheduling or batch processing, as
-schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
-virtual or physical, with the intent of minimizing the total execution time,
-equally distributing resources, minimizing wait time for the user or reducing
-energy costs. As these objectives often contradict themselves so schedulers have
-to implement compromises or focus on what the user requires from the system.
-
-The scheduler has many factors to keep in mind while trying to be as efficient
-as possible, such as:
-
-\begin{itemize}
-	\item Resource availability and jobs resource requirements
-	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
-	\item Latency between compute resources
-	\item Compute resources failures
-	\item User defined jobs priority
-	\item Machine shutdowns and restarts
-	\item Data locality
-\end{itemize}
-
-All these elements make scheduling a very intricate problem that is at best
-polynomial in complexity, and often NP-hard (\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}).
-
 \section{Batsim concepts}
 
 Batsim\cite{dutot:hal-01333471} is a distributed system simulator built upon
@@ -472,6 +486,8 @@ a Unix Domain Socket.
 
 
 \subsubsection{Related projects}
+
+TODO: figure out whether to put this section here or under \ref{study-computing-infra}
 
  Aléa and Accasim
 
