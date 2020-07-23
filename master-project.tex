@@ -182,6 +182,9 @@ Good luck :)
 
 \chapter{Introduction}
 
+TODO: Make another pass on that section after everything else is redacted (or
+at least the soa)\\
+
 The need for scalable computing infrastructure has increased tremendously in
 the last decades. Nearly every field of computer science, from research to the
 service industry, now needs a proper infrastructure and by 2025, computation
@@ -259,32 +262,6 @@ wishes to build new internet platforms from the ground up.\\
 TODO : what we where able to do (summary of the simulator capabilities,
 experimentations, results)
 
-%\subsection{A bit of context : High Performance Computing}
-%
-%TODO
-%
-%A general definition of HPC would be :
-%``\textit{High Performance Computing (HPC) most generally refers to the
-%		practice of aggregating computing power in a way that delivers
-%		much higher performance than one could get out of a typical
-%		desktop computer in order to solve large problems in science,
-%		engineering, or
-%		business.}
-%\footnote{\url{https://wwwen.uni.lu/university/high_performance_computing}}''.
-%HPC can either refer to ``High Performance Computing'' or ``High Performance
-%Computer'' but it is generally clear which one it refers to, given the
-%context.
-%
-%A HPC workload is composed of numerous tasks hungry for computational resources
-%which are executed in parallel on different machines (that we can refer to as
-%compute resources or nodes). These tasks may be completely independant like
-%when different users each submit a single task, or they may also be tightly
-%coupled together as when a single user submits a job that is composed of
-%several tasks than can be run in parallel. In that case, the whole system
-%becomes very sensitive to latency as these tasks have got to communicate
-%together. This is done through MPIs (Message Passing Interfaces) which
-%represent a large part of the HPC field.\\
-
 \chapter{State of the art}
 
 \section{Context: Cloud Native Computing}
@@ -295,15 +272,15 @@ that needed to be coped with manually like resources allocation,
 maintainability or scalability. In an attempt to automate this process
 developers started using virtual machines which enabled them to run their
 services regardless of physical infrastructure while having a better control
-over resources allocation.  This led to the concept of containers which takes
-the idea of encapsulated applications further.
+over resource allocation.  This led to the concept of containers which takes
+the idea of encapsulated applications further than plain virtual machines.
 
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=\textwidth]{./imgs/container_evolution.png}
-%	\captionsource{Evolution of application deployment.}{https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/}
-%	\label{fig:container-evolution}
-%\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{./imgs/container_evolution.png}
+	\captionsource{Evolution of application deployment.}{https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/}
+	\label{fig:container-evolution}
+\end{figure}
 
 Containers can be thought of as lightweight virtual machines. Unlike the
 latter, containers share the same kernel with the host machine but still allow
@@ -343,11 +320,11 @@ there are use cases, each having a different vision on efficiency and what
 metrics are critical to the system: latency, bandwith, resource availability,
 computational power or cost effectiveness (the latter boils down to energy
 efficiency). This variety of purposes translates to the type of hardware used
-and the topology the infrastructure. Some systems are centralized like HPC and
-Data Centers, others are meant to be used from a distance like Cloud Computing
-infrastructures and others are decentralized like Grid Computingn Volunteer
-Computing and Peer to Peer computing. There are as many systems as there are
-objectives to be achieved.
+and the topology of the infrastructure. Some systems are centralized like HPC
+and Data Centers, others are meant to be used from a distance like Cloud
+Computing infrastructures and others are decentralized like Grid Computing,
+Volunteer Computing and Peer to Peer computing. There are as many systems as
+there are objectives to be achieved.
 
 As a consequence, there are no general tools to study those systems.
 Furthermore, as the biggest supercomputers are approaching the exascale
@@ -358,25 +335,14 @@ building a general mathematical model that would be accurate enough to predict
 the behavior of those systems under varying conditions. Also, interactions
 between the various components of those systems may lead to unexpected
 behavior\cite{10.1007/978-3-319-09873-9_12} that can hardly be predicted.
-Then, in order to extensively experiment on a given system, there are 3 options
-left as described in \cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
+
+In order to extensively experiment on a given system, there are 3 options left
+as described in \cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
 vitro} and \textit{in silico} studies, which correspond respectively to
-experiments on real testbeds, emulation and simulation.
-
-%The other option is
-%running experiments on real systems. However, it is expensive and poses major
-%reproducibility issues because one would need access to the exact same system
-%to re-run the experiments. This is why researchers now resort to simulation to
-%validate their models. 
-
-%It is still an active area of research where some
-%projects have versatility as their core concern, and most are \textit{ad-hoc}
-%tools that are either unreleased or unmaintained.
-
-The next sections build upon \cite{legrand2015scheduling} and
-\cite{casanova:hal-01017319} by the team behind the
-SimGrid\cite{casanova:hal-01017319} simulator, and are aimed at depicting the
-current landscape of experimentation on distributed systems.
+experiments on real testbeds, emulation and simulation.  The next sections
+build upon \cite{legrand2015scheduling} and \cite{casanova:hal-01017319} and
+are aimed at depicting the current landscape of experimentation on distributed
+systems.
 
 \subsubsection{\textit{in vivo} and \textit{in vitro} studies}
 
@@ -396,7 +362,7 @@ Problems with simulation: often unrealeased simulators, or designed for a specif
 Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
 Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
 
-Related projects list (will definetly not include everything. This is not aimed at being a report on the entire simulation world).
+list of simulators
 \begin{itemize}
 	\item SimGrid, GridSim, CloudSim, GroudSim (to cite the most important).
 	\item Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim, OverSim (peer to peer), WRENCH (workflows).
@@ -408,14 +374,15 @@ Related projects list (will definetly not include everything. This is not aimed 
 
 \subsubsection{Kubernetes simulation}
 
-Kubernetes simulation: k8-cluster-simulator, joySim. FOCUS ON THAT
+Kubernetes simulation: k8-cluster-simulator, joySim.
 
 \subsubsection{The scheduling problem}
 
 TODO: What to do with this section?
 
 In particular, this work is targeted at experimenting with scheduling in a
-distributed system driven by Kubernetes.
+distributed system driven by Kubernetes. Here we present a general definition
+of scheduling, and the challenges it tackles.
 
 \begin{displayquote}[][]
 	\textbf{schedule} \textit{n.} : A plan for
@@ -430,25 +397,25 @@ linked together.
 
 In computing the definition remains the same, but with automation in mind.
 Schedulers are algorithms that take as an input either a pre-defined workload,
-which is a set of jobs  to be executed - the tasks are called jobs in this
-context -, or simple jobs submitted over time by users in an unpredictable
-manner. In the latter case, the jobs are added to a queue managed by the
+which is a set of jobs  to be executed, or single jobs submitted over time by
+users in an unpredictable manner (as it is most often the case with HPC for
+example). In the latter case, the jobs are added to a queue managed by the
 scheduler. Scheduling is also called batch scheduling or batch processing, as
 schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
 virtual or physical, with the intent of minimizing the total execution time,
 equally distributing resources, minimizing wait time for the user or reducing
-energy costs. As these objectives often contradict themselves, schedulers have
-to implement compromises or focus on what the user really needs or requires.  
+energy costs. As these objectives often contradict themselves so schedulers have
+to implement compromises or focus on what the user requires from the system.
 
 The scheduler has many factors to keep in mind while trying to be as efficient
-as possible, such as :
+as possible, such as:
 
 \begin{itemize}
 	\item Resource availability and jobs resource requirements
 	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
 	\item Latency between compute resources
 	\item Compute resources failures
-	\item Jobs priority
+	\item User defined jobs priority
 	\item Machine shutdowns and restarts
 	\item Data locality
 \end{itemize}
@@ -456,20 +423,52 @@ as possible, such as :
 All these elements make scheduling a very intricate problem that is at best
 polynomial in complexity, and often NP-hard (\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}).
 
-\section{Batsim concepts and objectives}
+\section{Batsim concepts}
 
-TODO General concepts of batsim: Language agnostic, ease of use, aimed at
-experimenting on scheduling policies, deterministic (reproducibility is at the
-core of batsim), coarse grain simulation.
+Batsim\cite{dutot:hal-01333471} is a distributed system simulator built upon
+the SimGrid framework. It was made to analyze batch schedulers (or RJMS for
+Resource and Jobs Management Software), and was built with several objectives in
+mind.
+
+One of its main concerns is reproducibility. In that regard, Batsim is
+deterministic.  Its event-based models will provide the same results given the
+same inputs and decision process. Also, unlike other HPC or grid computing
+simulations that run on existing application traces, Batsim takes a user
+defined workload or workflow as an input. As a consequence, the user has no
+concerns such as intellectual property on the application traces he used for
+his experiments and may provide all his experiments materials for subsequent
+projects.  Another advantage of this system is that the user can adapt the
+workload depending on its needs, to achieve different levels of realism. The
+user may still provide jobs in the form of SMPI traces if he desires, however
+once again, off-line simulation is not the main focus of Batsim.
+
+Batsim, just like SimGrid, aims at being versatile, in the sense that it aims
+at simulating the widest range of application possible on virtually  any system
+topology. The common belief is that specialization is the key to achieving
+realistic results, however according to SimGrid this versatility is all but an
+obstacle to accuracy\cite{casanova:hal-01017319}: it is on the contrary the key
+to their results which are both scalable and accurate. Batsim computation
+platforms are SimGrid platforms meaning that theoretically, they may be as
+broad as SimGrid allows it. In reality any SimGrid platform is not a correct
+Batsim platform. Because Batsim aims at studying RJMS software, it requires a
+\textbf{master} node that will host the decision process. The other hosts (or
+computational resources) will have either the roles of \textbf{compute\_node}
+or \textbf{storage}. Still, the user may study any topology he wishes using
+SimGrid models.
+
+TODO
+Batsim is language agnostic which
+means that any RJMS can be plugged into it, as long as it implements its
+communication interface. This interface is text based and messages are sent via
+a Unix Domain Socket.
+
+
 
 \subsubsection{SimGrid}
 
  TODO : Quick description of SimGrid objectives and general concepts. (General
  purpose, large scale simulation).
 
- Does this justify a whole subsection? Isn't a paragraph enough for this? I
- don't need to dig deep into SimGrid inner mechanics as this work is at the
- higher level.
 
 
 \subsubsection{Related projects}
