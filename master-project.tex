@@ -268,7 +268,7 @@ TODO: maybe a summary of this section. (1 - kubernetes put in context, 2 -
 focus on the scheduling problem, 3 - studying computer infra in general, 4 -
 Batsim is a tool very well suited for answering the scheduling problem)
 
-\section{Context: Cloud Native Computing}
+\section{Cloud Computing}
 
 TODO: small intro on this part to clarify that this is to put Kubernetes in context.
 
@@ -391,28 +391,45 @@ As a consequence, there are no general tools to study those systems.
 Furthermore, as the biggest supercomputers are approaching the exascale
 barrier\footnote{https://www.top500.org/news/japan-captures-top500-crown-arm-powered-supercomputer/}
 and consist of thousands of nodes with millions of cpu cores (more than 7M for
-the new ``Fugaku`` Japanese supercomputer), no human would be capable of
+the new ``Fugaku'' Japanese supercomputer), no human would be capable of
 building a general mathematical model that would be accurate enough to predict
 the behavior of those systems under varying conditions. Also, interactions
 between the various components of those systems may lead to unexpected
 behavior\cite{10.1007/978-3-319-09873-9_12} that can hardly be predicted.
 
 In order to extensively experiment on a given system, there are 3 options left
-as described in \cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
+as described in\cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
 vitro} and \textit{in silico} studies, which correspond respectively to
-experiments on real testbeds, emulation and simulation.  The next sections
-build upon \cite{legrand2015scheduling} and \cite{casanova:hal-01017319} and
-are aimed at depicting the current landscape of experimentation on distributed
-systems.
+experiments on real testbeds, emulation and simulation.  
+
+TODO : intro on the next sections
+%The next sections build upon \cite{legrand2015scheduling} and
+%\cite{casanova:hal-01017319} and are aimed at depicting the current landscape
+%of experimentation on distributed systems.
 
 \subsubsection{\textit{in vivo} and \textit{in vitro} studies}
 
 The most direct approach to study an infrastructure is running \textit{in vivo}
 experiments, that is to say running experiments on a real testbed. This will
-produce the most accurate results, but one can already guess this approach is
-not viable for extensive studies on the bigger systems.
+produce the most accurate results, however it poses major scalability and
+reproducibility issues.
 
-TODO
+Experiments conducted on real systems may prove difficult to reproduce, as one
+must have access to the same system to reiterate it. Even then, changes to the
+infrastructure hardware and software environment diminish the chances of
+getting the same conditions. One solution to this problem is running \textit{in
+vitro} studies, that is to say run an emulation of the system (virtual machines
+or a network emulation for example). This resolves the issue of
+reproducibility, however the matter of the cost in energy and time remains (if
+anything, emulation aggravates these costs).
+
+This cost is exacerbated by the many iterations of a same experiment one must
+conduct in order to get statistically significant results. Workloads submitted
+by real users can last from hours to months and have substantial costs in
+energy: the means required to run them are too great and research to optimize
+or simply study these systems can not justify this waste of resources. For all
+these reasons scientists resort to simulation to study these computing
+infrastructures.
 
 \subsubsection{\textit{in silico} studies, or simulation}
 
@@ -440,9 +457,8 @@ Kubernetes simulation: k8-cluster-simulator, joySim.
 \section{Batsim concepts}
 
 Batsim\cite{dutot:hal-01333471} is a distributed system simulator built upon
-the SimGrid framework. It was made to analyze batch schedulers (or RJMS for
-Resource and Jobs Management Software), and was built with several objectives in
-mind.
+the SimGrid framework. Its main objective is to enable researchers to study
+RJMS, and it was built following several key principles.
 
 One of its main concerns is reproducibility. In that regard, Batsim is
 deterministic.  Its event-based models will provide the same results given the
