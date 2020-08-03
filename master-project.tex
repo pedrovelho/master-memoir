@@ -433,9 +433,14 @@ infrastructures.
 
 \subsubsection{\textit{in silico} studies, or simulation}
 
-Why: explained earlier.\\
+When running simulations two primary concerns are accuracy and scalability.
+Accuracy is the measure of the bias between the simulated trace of an execution
+of an application and its trace as if it were executed on a real system (the
+lower it is, the higher the accuracy). Scalability is the ability of the
+simulator to compute simulations quickly, or run large scale experiments.\\
 
-Problems with simulation: often unrealeased simulators, or designed for a specific project, or short lived (OptorSim) -> This is why Batsim was created.
+Problems with simulation: often unrealeased simulators, or designed for a
+specific project, or short lived (OptorSim) -> This is why Batsim was created.
 
 Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
 Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
@@ -457,48 +462,45 @@ Kubernetes simulation: k8-cluster-simulator, joySim.
 \section{Batsim concepts}
 
 Batsim\cite{dutot:hal-01333471} is a distributed system simulator built upon
-the SimGrid framework. Its main objective is to enable researchers to study
-RJMS, and it was built following several key principles.
+the SimGrid framework. Its main objective is to enable the study of RJMS
+without the need to implement a custom simulator, by providing a universal text
+based interface.
 
-One of its main concerns is reproducibility. In that regard, Batsim is
-deterministic.  Its event-based models will provide the same results given the
-same inputs and decision process. Also, unlike other HPC or grid computing
-simulations that run on existing application traces, Batsim takes a user
-defined workload or workflow as an input. As a consequence, the user has no
-concerns such as intellectual property on the application traces he used for
-his experiments and may provide all his experiments materials for subsequent
-projects.  Another advantage of this system is that the user can adapt the
-workload depending on its needs, to achieve different levels of realism. The
-user may still provide jobs in the form of SMPI traces if he desires, however
-once again, off-line simulation is not the main focus of Batsim.
+Batsim is entirely deterministic so at to make the studies easily reproducible.
+Its event-based models will provide the same results given the same inputs and
+decision process. One other way Batsim facilitates reproducibility is through
+its user-defined inputs. Unlike other HPC or grid computing simulations that
+run on existing application traces, Batsim takes a user defined workload as an
+input. As a consequence, the user has no concerns such as intellectual property
+on application traces and may provide all his experiments materials and
+environment.  Another advantage of this system is that the user can adapt the
+workload depending on its needs, to achieve different levels of realism.
 
-Batsim, just like SimGrid, aims at being versatile, in the sense that it aims
-at simulating the widest range of application possible on virtually  any system
-topology. The common belief is that specialization is the key to achieving
-realistic results, however according to SimGrid this versatility is all but an
-obstacle to accuracy\cite{casanova:hal-01017319}: it is on the contrary the key
-to their results which are both scalable and accurate. Batsim computation
-platforms are SimGrid platforms meaning that theoretically, they may be as
-broad as SimGrid allows it. In reality any SimGrid platform is not a correct
-Batsim platform. Because Batsim aims at studying RJMS software, it requires a
-\textbf{master} node that will host the decision process. The other hosts (or
-computational resources) will have either the roles of \textbf{compute\_node}
-or \textbf{storage}. Still, the user may study any topology he wishes using
+Batsim, just like SimGrid, aims at being versatile. The common belief is that
+specialization is the key to achieving realistic results, however according to
+SimGrid this versatility is all but an obstacle to
+accuracy\cite{casanova:hal-01017319}: it is on the contrary the key to their
+results which are both scalable and accurate. Batsim computation platforms are
+SimGrid platforms meaning that theoretically, they may be as broad as SimGrid
+allows it. In reality any SimGrid platform is not a correct Batsim platform.
+Because Batsim aims at studying RJMS software, it requires a \textbf{master}
+node that will host the decision process. The other hosts (or computational
+resources) will have either the roles of \textbf{compute\_node} or
+\textbf{storage}. Still, the user may study any topology he wishes using
 SimGrid models.
 
-TODO
-Batsim is language agnostic which
-means that any RJMS can be plugged into it, as long as it implements its
-communication interface. This interface is text based and messages are sent via
-a Unix Domain Socket.
-
+Thanks to its own message interface based on Unix sockets, Batsim is language
+agnostic which means that any RJMS can be plugged into it as long as it
+implements the interface.
 
 
 \subsubsection{SimGrid}
 
- TODO : Quick description of SimGrid objectives and general concepts. (General
- purpose, large scale simulation).
+As stated before Batsim is built upon the SimGrid framework which is a library
+for developing accurate, scalable and versatile simulators of distributed
+systems.
 
+TODO
 
 
 \subsubsection{Related projects}
