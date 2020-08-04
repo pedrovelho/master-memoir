@@ -720,14 +720,15 @@ mimics the real api well enough to let the scheduler run as expected.
 
 In order to validate the simulator results we then need to compare it against
 workloads run on a real cluster. For reproducibility and simplicity sake, we
-choose to validate the simulator against an emulated cluster run in
+choose to validate the simulator with an emulated cluster run in
 containers.\\
 
 In these next sections, we study the simulator results against three parameters
-across three workloads using the default kubernetes scheduler. Note that any
+and across three workloads using the default kubernetes scheduler. Note that any
 other scheduler can be used, implying some work is done on the API to support
 their features.
 
+The workloads are defined as follow:
 \begin{itemize}
 	\item A \textit{basic} workload, where 200 delays of value 160 are
 		submitted at time zero.
