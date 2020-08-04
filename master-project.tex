@@ -325,54 +325,6 @@ policies would affect performances?  First, let's talk about the scheduling
 problem (in general) because it is the focus of experimentation with Batsim,
 and then discuss the general problem of the study of computing infrastructures.
 
-\section{The scheduling problem}
-
-In particular, this work is targeted at experimenting with scheduling in a
-distributed system driven by Kubernetes. Here we present a general definition
-of scheduling, and the challenges it tackles.
-
-\begin{displayquote}[][]
-	\textbf{schedule} \textit{n.} : A plan for
-	performing work or achieving an objective, specifying the order and
-	allotted time for each part.
-\end{displayquote}
-
-In a general way, scheduling is the concept of allocating available resources
-to a set of tasks, organizing them in time and space (the resource space). The
-resources can be of any nature, and the tasks independent from each others or
-linked together.
-
-In computing the definition remains the same, but with automation in mind.
-Schedulers are algorithms that take as an input either a pre-defined workload,
-which is a set of jobs  to be executed, or single jobs submitted over time by
-users in an unpredictable manner (as it is most often the case with HPC for
-example). In the latter case, the jobs are added to a queue managed by the
-scheduler. Scheduling is also called batch scheduling or batch processing, as
-schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
-virtual or physical, with the intent of minimizing the total execution time,
-equally distributing resources, minimizing wait time for the user or reducing
-energy costs. As these objectives often contradict themselves so schedulers have
-to implement compromises or focus on what the user requires from the system.
-
-The scheduler has many factors to keep in mind while trying to be as efficient
-as possible, such as:
-
-\begin{itemize}
-	\item Resource availability and jobs resource requirements
-	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
-	\item Latency between compute resources
-	\item Compute resources failures
-	\item User defined jobs priority
-	\item Machine shutdowns and restarts
-	\item Data locality
-\end{itemize}
-
-All these elements make scheduling a very intricate problem that is at best
-polynomial in complexity, and often NP-hard (\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}).
-
-TODO: outro to the next section, before tackling the issue of job scheduling we
-must know how to study computing infra in general
-
 \section{Studying computer infrastructures} \label{study-computing-infra}
 
 Studying an entire computing infrastructure is not an easy feat, first because
@@ -459,12 +411,72 @@ list of simulators
 
 Kubernetes simulation: k8-cluster-simulator, joySim.
 
+
+\section{The scheduling problem}
+
+In particular, this work is targeted at experimenting with scheduling in a
+distributed system driven by Kubernetes. Here we present a general definition
+of scheduling, and the challenges it tackles.
+
+\begin{displayquote}[][]
+	\textbf{schedule} \textit{n.} : A plan for
+	performing work or achieving an objective, specifying the order and
+	allotted time for each part.
+\end{displayquote}
+
+In a general way, scheduling is the concept of allocating available resources
+to a set of tasks, organizing them in time and space (the resource space). The
+resources can be of any nature, and the tasks independent from each others or
+linked together.
+
+In computing the definition remains the same, but with automation in mind.
+Schedulers are algorithms that take as an input either a pre-defined workload,
+which is a set of jobs  to be executed, or single jobs submitted over time by
+users in an unpredictable manner (as it is most often the case with HPC for
+example). In the latter case, the jobs are added to a queue managed by the
+scheduler. Scheduling is also called batch scheduling or batch processing, as
+schedulers allocate batches of jobs at a time. Jobs are allocated on machines,
+virtual or physical, with the intent of minimizing the total execution time,
+equally distributing resources, minimizing wait time for the user or reducing
+energy costs. As these objectives often contradict themselves so schedulers have
+to implement compromises or focus on what the user requires from the system.
+
+The scheduler has many factors to keep in mind while trying to be as efficient
+as possible, such as:
+
+\begin{itemize}
+	\item Resource availability and jobs resource requirements
+	\item Link between jobs (some are executed in parallel and need synchronization, some are independent)
+	\item Latency between compute resources
+	\item Compute resources failures
+	\item User defined jobs priority
+	\item Machine shutdowns and restarts
+	\item Data locality
+\end{itemize}
+
+All these elements make scheduling a very intricate problem that is at best
+polynomial in complexity, and often NP-hard (\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}).
+
+\subsection{How to study this problem in particular}
+Some simulators are especially well suited for this.
+Aléa and Accasim, and Batsim, which is what we build upon.
+
 \section{Batsim concepts}
 
 Batsim\cite{dutot:hal-01333471} is a distributed system simulator built upon
 the SimGrid framework. Its main objective is to enable the study of RJMS
 without the need to implement a custom simulator, by providing a universal text
-based interface.
+based interface. In this section we first present the SimGrid framework and then we present some of the core concepts and objectives of Batsim.
+
+\subsubsection{SimGrid}
+
+To understand Batsim's paradigms and view on simulation, we first need to
+present Simgrid's paradigms. As the latter is the framework that Batsim builds
+upon, Batsim and Simgrid views on simulation cannot be distinguished.
+
+TODO
+
+\subsubsection{Batsim}
 
 Batsim is entirely deterministic so at to make the studies easily reproducible.
 Its event-based models will provide the same results given the same inputs and
@@ -493,21 +505,10 @@ Thanks to its own message interface based on Unix sockets, Batsim is language
 agnostic which means that any RJMS can be plugged into it as long as it
 implements the interface.
 
+TODO: why batsim?
 
-\subsubsection{SimGrid}
-
-As stated before Batsim is built upon the SimGrid framework which is a library
-for developing accurate, scalable and versatile simulators of distributed
-systems.
-
-TODO
-
-
-\subsubsection{Related projects}
-
-TODO: figure out whether to put this section here or under \ref{study-computing-infra}
-
- Aléa and Accasim
+Because it was developed at the lig and they want to expand its capabilities.
+It is language agnostic to very convenient to work with.
 
 \chapter{Implementation}
 
@@ -706,10 +707,127 @@ return now\;
 
 \subsection{Re-building the API}
 
-\chapter{Evaluation}
+\chapter{Evaluation and discussion}
 
-\chapter{Conclusion}
+Because SimGrid has already been thoroughly tested and validated, we do not
+need to run extensive experiments to validate Batkube simulation models.
+Moreover, since we only consider simple delay jobs, validation is not really
+necessary. Still, even though the underlying models are sound, Batkube adds a
+considerable overhead to Batsim because of the time synchronization between the
+simulator and the scheduler. We want to verify to want extent time manipulation
+impacts the scheduler behavior, and also that Batkube's fake Kubernetes api
+mimics the real api well enough to let the scheduler run as expected.
 
+In order to validate the simulator results we then need to compare it against
+workloads run on a real cluster. For reproducibility and simplicity sake, we
+choose to validate the simulator against an emulated cluster run in
+containers.\\
+
+In these next sections, we study the simulator results against three parameters
+across three workloads using the default kubernetes scheduler. Note that any
+other scheduler can be used, implying some work is done on the API to support
+their features.
+
+\begin{itemize}
+	\item A \textit{basic} workload, where 200 delays of value 160 are
+		submitted at time zero.
+	\item A \textit{spaced} workload, where 200 delays of value 160 are
+		submitted every 10 seconds.
+	\item A \textit{realistic} workload, which is extracted from a workload
+		from a real system.
+\end{itemize}
+
+\section{Testing against an emulated cluster}
+
+\subsubsection{Protocol}
+
+TODO: validation against k3s, scripts to create a cluster with k3s, scripts to
+process swf files, evalys. Include illustration of the protocol.
+
+Define \textit{accuracy}
+
+\subsubsection{Limits}
+
+\subsubsection{Results}
+
+\section{Study of the simulator parameters}
+
+The objective here is to fine tune the simulator parameters in order to find a
+compromise between accuracy and scalability.
+
+The parameters are:
+\begin{itemize}
+	\item The \textit{timeout} value when waiting for scheduler decisions.
+		Default value: 20ms.
+	\item The \textit{minimum delay} we have to spend waiting for the
+		scheduler. Default value: 10ms.
+	\item The \textit{maximum simulation time step}, which is the maximum
+		amount of time Batsim is allowed to jump forward in time.
+		Default value: 50s.
+\end{itemize}
+
+We first study these parameters one by one by fixing the other parameters to
+their default value, then we study what effects these parameters have in
+respect to one another, and finally we conduct scalability experiments to test
+Batkube's stability and performances on large workloads.
+
+\subsubsection{Timeout}
+
+Decreasing this value leaves less time for the scheduler to react: for example,
+if the scheduler needs 30ms to make a decision upon reception of an update in
+the resources state, and the value of the timeout is 20ms, Batkube will receive
+the decision on the next cycle which may happen several dozens of seconds later
+(depending on the \textit{maximum simulation time step} value). Intuitively,
+this will increase the simulation speed while leaving gaps in the decision
+process, causing a decrease in accuracy.\\
+
+TODO: graph - timeout vs accuracy vs simulation time
+
+\subsubsection{Minimum delay}
+
+We observed that not leaving enough time to the scheduler each cycle causes it
+to put itself in a deadlock state. From there, no decision is made. The
+\texttt{--detect-scheduler-deadlock} option allows to exit the simulation with
+code 1, to effectively detect such crashes. We expect to see a very high
+percentage of crashes when this value is low, that will decrease until there is
+enough time for the scheduler to make its computations correctly.\\
+
+TODO: graph - delay vs crash rate
+
+\subsubsection{Maximum simulation time step}
+
+Having a high maximum time step value will allow Batsim to jump forward further
+in time. This may result in skipping scheduler decisions that could have been
+made in the mean time, delaying them to when Batsim decides to wake up. We
+expect increasing this value to have an analogous effect to the timeout value:
+higher simulation speed, but also decreased accuracy due to gaps (delays) in
+the decision process.\\
+
+TODO: graph - time step vs acc vs sim time
+
+\subsubsection{Parameters inter dependency}
+
+Studying the parameters independently is not enough, we need to study their
+impact relatively to each others.
+
+For instance, the \textit{maximum simulation time step} and the
+\textit{timeout} value are tightly linked together regarding their effect on
+accuracy. Both decreasing \textit{timeout} and increasing \textit{maximum
+simulation time step} will increase the amount of delays in the decision making
+of the scheduler, but also their length, multiplying the impact on accuracy.
+
+On the other hand, we do not except the \textit{minimum wait delay} to have any
+impact other than increasing the simulation stability.
+
+TODO: Facet graphs
+
+\subsubsection{Scalability experiments}
+
+We have extracted a few workloads recorded on real systems to test out the
+scheduler performances in regard to scalability, that is to say the ability to
+run large workloads in a minimal amount of time.
+
+TODO: recreate large workloads on large systems
 
 \backmatter
 \printbibliography
