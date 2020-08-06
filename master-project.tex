@@ -714,42 +714,57 @@ need to run extensive experiments to validate Batkube simulation models.
 Moreover, since we only consider simple delay jobs, validation is not really
 necessary. Still, even though the underlying models are sound, Batkube adds a
 considerable overhead to Batsim because of the time synchronization between the
-simulator and the scheduler. We want to verify to want extent time manipulation
-impacts the scheduler behavior, and also that Batkube's fake Kubernetes api
-mimics the real api well enough to let the scheduler run as expected.
+simulator and the scheduler. We want to verify to what extent time manipulation
+impacts the scheduler behavior, and also that Batkube's fake Kubernetes API
+mimics the real API well enough to let the scheduler run as expected.
 
 In order to validate the simulator results we then need to compare it against
 workloads run on a real cluster. For reproducibility and simplicity sake, we
 choose to validate the simulator with an emulated cluster run in
 containers.\\
 
-In these next sections, we study the simulator results against three parameters
-and across three workloads using the default kubernetes scheduler. Note that any
-other scheduler can be used, implying some work is done on the API to support
-their features.
-
-The workloads are defined as follow:
+We consider three workloads, representing three different situations. The first
+two are simplistic and very controlled, and the last one depicts a more
+realistic case.
 \begin{itemize}
-	\item A \textit{basic} workload, where 200 delays of value 160 are
-		submitted at time zero.
-	\item A \textit{spaced} workload, where 200 delays of value 160 are
-		submitted every 10 seconds.
+	\item A \textit{burst} workload, consisting in an important amount of
+		jobs submitted at time zero.  200 delays with duration 170s,
+		and requesting 1 cpu, are submitted at the origin.
+	\item A \textit{spaced} workload, where jobs of the same nature are
+		submitted at regular intervals.  200 delays with duration 170s,
+		and requesting 1 cpu, are submitted every 10s.
 	\item A \textit{realistic} workload, which is extracted from a workload
 		from a real system.
 \end{itemize}
+
+TODO: describe the platform: 16x1cpu for the first two, TBD for the realistic wl.\\
+
+TODO: explain how the workload is extracted and its caracteristics.\\
+
+The simulator has a few parameters that impact the simulation speed and
+accuracy. The objective is to study the effects of these parameters on the
+simulation to better understand the scheduler behavior when running in
+coordination with Batkube.\\
+
+The entirety of the experiments are done with the default Kubernetes scheduler \textbf{kube-scheduler} release \textbf{v1.19.0.rc-4}.
 
 \section{Testing against an emulated cluster}
 
 \subsubsection{Protocol}
 
-TODO: validation against k3s, scripts to create a cluster with k3s, scripts to
+TODO: scripts to create a cluster with k3s, scripts to
 process swf files, evalys. Include illustration of the protocol.
 
-Define \textit{accuracy}
+For each workload, run it 10 times for the first two, only a few times for the
+last one.
 
 \subsubsection{Limits}
 
+TODO: mention the limit on the amount of cpu and memory.
+
 \subsubsection{Results}
+
+TODO: Show the results, that will serve as a control for the other experiments.
 
 \section{Study of the simulator parameters}
 
@@ -772,6 +787,27 @@ their default value, then we study what effects these parameters have in
 respect to one another, and finally we conduct scalability experiments to test
 Batkube's stability and performances on large workloads.
 
+\subsubsection{Minimum delay}
+
+We observed that not leaving enough time to the scheduler each cycle causes it
+to put itself in a deadlock state, or may make batsky-go crash. From there, no
+decision is made for the rest of the simulation. The
+\texttt{detect-scheduler-deadlock} option allows systematically detect such
+crashes based on a timeout value, making Batkube exit the simulation with code
+1 when it happens.
+
+We expect to see a very high percentage of crashes when this value is low, that
+will decrease until there is enough time for the scheduler to make its
+computations correctly.\\
+
+For each workload, we compute the crash rate every 5ms, from 0ms to 50ms. Each
+point is made by running the simulation 15 times and recording the exit code,
+as well as the simulation time.
+
+TODO: graph: delay vs crash rate
+
+TODO: graph: delay vs simulation time
+
 \subsubsection{Timeout}
 
 Decreasing this value leaves less time for the scheduler to react: for example,
@@ -783,17 +819,6 @@ this will increase the simulation speed while leaving gaps in the decision
 process, causing a decrease in accuracy.\\
 
 TODO: graph - timeout vs accuracy vs simulation time
-
-\subsubsection{Minimum delay}
-
-We observed that not leaving enough time to the scheduler each cycle causes it
-to put itself in a deadlock state. From there, no decision is made. The
-\texttt{--detect-scheduler-deadlock} option allows to exit the simulation with
-code 1, to effectively detect such crashes. We expect to see a very high
-percentage of crashes when this value is low, that will decrease until there is
-enough time for the scheduler to make its computations correctly.\\
-
-TODO: graph - delay vs crash rate
 
 \subsubsection{Maximum simulation time step}
 
