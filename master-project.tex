@@ -608,102 +608,102 @@ given HPC workloads.
 
 \section{Technical challenges}
 \subsection{Translation}
-\subsection{Time hijack}
+\subsection{Time interception}
 TODO
 
-\SetKwInput{KwInput}{Input}
-\SetKwInput{KwOutput}{Output}
-
-
-\begin{algorithm}[H]
-\DontPrintSemicolon
-\KwInput{req: request channel, res: result channel map}
-\While{Batkube is not ready} {
-	wait\;
-}
-requests = []request\;
-\While{req is not empty} {
-	m = $<$- req \tcc{Non blocking receive}
-	requests = append(requests, m)\;
-}
-sendToBatkube(requests) \tcc{Only requests with duration > 0 are actually sent. Batkube will always anwser.}
-now = responseFromBatkube()\;
-\For{m in range requests} {
-	res[m.id] $<$-now \tcc{The caller continues execution upon reception}
-}
-
-	
-\caption{Requester loop}
-\label{alg:reqLoop}
-\end{algorithm}
-
-
-\begin{algorithm}[H]
-\DontPrintSemicolon
-\KwResult{Current simulation time}
-\KwInput{d: timer duration, req: request channel, res: response channel map}
-\KwOutput{now : simulation time}
-
-\If{requester loop is not running}{
-	go runRequesterLoop() \tcc{There can on ly be one loop runing at a time}
-}
-id = newUUID()\;
-m = newRequestMessage(d, id) \tcc{Requests are identified using uuids}
-resChannel = newChannel()\;
-res[id] = resChannel \tcc{A channel is associated with each request}
-req $<$- m \tcc{The code blocks here until request is handled}
-now = $<$-resChannel \tcc{The code blocks here until response is sent by the requester loop}
-return now\;
-\caption{Time request (time.now())}
-\label{alg:now}
-\end{algorithm}
+%\SetKwInput{KwInput}{Input}
+%\SetKwInput{KwOutput}{Output}
+%
+%
+%\begin{algorithm}[H]
+%\DontPrintSemicolon
+%\KwInput{req: request channel, res: result channel map}
+%\While{Batkube is not ready} {
+%	wait\;
+%}
+%requests = []request\;
+%\While{req is not empty} {
+%	m = $<$- req \tcc{Non blocking receive}
+%	requests = append(requests, m)\;
+%}
+%sendToBatkube(requests) \tcc{Only requests with duration > 0 are actually sent. Batkube will always anwser.}
+%now = responseFromBatkube()\;
+%\For{m in range requests} {
+%	res[m.id] $<$-now \tcc{The caller continues execution upon reception}
+%}
+%
+%	
+%\caption{Requester loop}
+%\label{alg:reqLoop}
+%\end{algorithm}
+%
+%
+%\begin{algorithm}[H]
+%\DontPrintSemicolon
+%\KwResult{Current simulation time}
+%\KwInput{d: timer duration, req: request channel, res: response channel map}
+%\KwOutput{now : simulation time}
+%
+%\If{requester loop is not running}{
+%	go runRequesterLoop() \tcc{There can on ly be one loop runing at a time}
+%}
+%id = newUUID()\;
+%m = newRequestMessage(d, id) \tcc{Requests are identified using uuids}
+%resChannel = newChannel()\;
+%res[id] = resChannel \tcc{A channel is associated with each request}
+%req $<$- m \tcc{The code blocks here until request is handled}
+%now = $<$-resChannel \tcc{The code blocks here until response is sent by the requester loop}
+%return now\;
+%\caption{Time request (time.now())}
+%\label{alg:now}
+%\end{algorithm}
 
 
 \subsection{Time synchronisation}
 
-\begin{algorithm}[H]
-	\caption{Synchronisation with timers}
-	\label{alg:sync_timers}
-	\DontPrintSemicolon
-	\KwInput{timeout: time.Duration; simulationTimestep: time.Duration}
-
-	stopWaitingForMessages := false\;
-	\While{!stopWaitingForMessages}{
-		getTimerRequests() \tcc{Translate timers requested by the scheduler to CALL\_ME\_LATER events}
-		getSchedulerDecisions() \tcc{Translate scheduler decisions to Batsim messages}
-		\If{decisionReceived() or timeSinceLastMessage() > timeout}{
-			stopWaitingForMessages = true
-		}
-	}
-	\tcc{We keep track of all REQUESTED\_CALL events yet to come}
-	\If{durationToNextRequestedCall > simulationTimestep}{
-		addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + simulationTimestep
-		}
-	}
-\end{algorithm}
-
-\bigskip
-
-\begin{algorithm}[H]
-	\caption{Synchronisation with incremental time increases}
-	\label{alg:sync_timers}
-	\DontPrintSemicolon
-	\KwInput{simulationTimeout: time.Duration; incrementTimeStep: time.Duration; incrementValue: time.Duration}
-
-	stopWaitingForMessages := false\;
-	incremented := 0\;
-	\While{!stopWaitingForMessages}{
-		getSchedulerDecisions()\;
-		\If{decisionReceived() or incremented >= simulationTimeout}{
-			stopWaitingForMessages = true
-		}\ElseIf{timeSinceLastIncrement() > incrementTimeStep}{
-			\tcc{this last condition is here to slow down this process and give time for the scheduler to take its decisions}
-			now = now + incrementValue\;
-			incremented = incremented + incrementValue
-		}
-	}
-	addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + incrementValue}
-\end{algorithm}
+%\begin{algorithm}[H]
+%	\caption{Synchronisation with timers}
+%	\label{alg:sync_timers}
+%	\DontPrintSemicolon
+%	\KwInput{timeout: time.Duration; simulationTimestep: time.Duration}
+%
+%	stopWaitingForMessages := false\;
+%	\While{!stopWaitingForMessages}{
+%		getTimerRequests() \tcc{Translate timers requested by the scheduler to CALL\_ME\_LATER events}
+%		getSchedulerDecisions() \tcc{Translate scheduler decisions to Batsim messages}
+%		\If{decisionReceived() or timeSinceLastMessage() > timeout}{
+%			stopWaitingForMessages = true
+%		}
+%	}
+%	\tcc{We keep track of all REQUESTED\_CALL events yet to come}
+%	\If{durationToNextRequestedCall > simulationTimestep}{
+%		addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + simulationTimestep
+%		}
+%	}
+%\end{algorithm}
+%
+%\bigskip
+%
+%\begin{algorithm}[H]
+%	\caption{Synchronisation with incremental time increases}
+%	\label{alg:sync_timers}
+%	\DontPrintSemicolon
+%	\KwInput{simulationTimeout: time.Duration; incrementTimeStep: time.Duration; incrementValue: time.Duration}
+%
+%	stopWaitingForMessages := false\;
+%	incremented := 0\;
+%	\While{!stopWaitingForMessages}{
+%		getSchedulerDecisions()\;
+%		\If{decisionReceived() or incremented >= simulationTimeout}{
+%			stopWaitingForMessages = true
+%		}\ElseIf{timeSinceLastIncrement() > incrementTimeStep}{
+%			\tcc{this last condition is here to slow down this process and give time for the scheduler to take its decisions}
+%			now = now + incrementValue\;
+%			incremented = incremented + incrementValue
+%		}
+%	}
+%	addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + incrementValue}
+%\end{algorithm}
 
 \subsection{Re-building the API}
 
@@ -718,58 +718,126 @@ simulator and the scheduler. We want to verify to what extent time manipulation
 impacts the scheduler behavior, and also that Batkube's fake Kubernetes API
 mimics the real API well enough to let the scheduler run as expected.
 
+In the next sections, we present the workloads and platforms we chose to study,
+how we conducted experiments on a real cluster, and a study on Batkube's
+parameters and their effect on the outputs.
+
+\section{Experiments environment}
+
+\subsection{Real experimental testbed}
+
 In order to validate the simulator results we then need to compare it against
 workloads run on a real cluster. For reproducibility and simplicity sake, we
 choose to validate the simulator with an emulated cluster run in
 containers.\\
 
-We consider three workloads, representing three different situations. The first
-two are simplistic and very controlled, and the last one depicts a more
-realistic case.
+TODO: scripts to create a cluster with k3s. 
+
+For each workload, run it 10 times for the first two, only a few times for the
+last one.
+
+TODO: mention the limit on the amount of cpu and memory as well as the large
+experience time. Mention the fact that jobs can't be scheduled across nodes:
+if we want to mimic a batch scheduling behavior we need to emulate one big node
+containing all the cpu we need, or use adapted workloads.
+
+\subsection{Simulated testbed}
+
+TODO: Those are the options batkube is run with throughout the experiments.
 \begin{itemize}
-	\item A \textit{burst} workload, consisting in an important amount of
-		jobs submitted at time zero.  200 delays with duration 170s,
-		and requesting 1 cpu, are submitted at the origin.
-	\item A \textit{spaced} workload, where jobs of the same nature are
-		submitted at regular intervals.  200 delays with duration 170s,
-		and requesting 1 cpu, are submitted every 10s.
-	\item A \textit{realistic} workload, which is extracted from a workload
-		from a real system.
+	\item base-simulation-timestep: 100ms. Starting value for the
+		simulation timestep, which then increases with the implemented
+		backoff policy. --> Can be the object of an experiment, not
+		sure if it impacts the simulation.
+	\item backoff-multiplier: 2. Same as last one, not sure if it has an impact really.
+	\item detect-scheduler-deadlock: true. Obligatory for automating experiments
+	\item scheduler-crash-timeour: 5s (more than enough)
+	\item fast-forward-on-no-pending-jobs: the scheduler is not susceptible
+		to reschedule running jobs (there is a de-scheduler for that)
+		so we might as well fast forward when there is nothing to
+		schedule.
 \end{itemize}
 
-TODO: describe the platform: 16x1cpu for the first two, TBD for the realistic wl.\\
+The other parameters are precised for each experiment.
 
-TODO: explain how the workload is extracted and its caracteristics.\\
+\subsection{Studied workloads}
+
+We consider three workloads, representing three different situations. The first
+two are simplistic and very controlled, and the last one depicts a more
+realistic case. In all cases the required resources are only quantified in cpu
+only to simplify the study. Adding requests in memory is instantaneous if we
+want to conduct more exhaustive studies on scheduling policies, but in our case
+we are only interested in evaluating the simulator itself and how it does not
+affect scheduling behavior in simple cases.
+\begin{itemize}
+	\item A \textit{burst} workload, consisting in an important amount of
+		jobs submitted at once.  200 delays with duration 170s and
+		requesting 1 cpu are submitted at the origin.
+	\item A \textit{spaced} workload, where jobs of the same nature are
+		submitted at regular intervals.  200 delays with duration 170s,
+		and requesting 1 cpu are submitted every 10s.
+	\item A \textit{realistic} workload, which is extracted from a larger
+		trace of a real system.
+\end{itemize}
+
+
+TODO: Maybe illustrations to explain the process?
+
+The first two workloads are straight forward and could be generated with the
+use of a plain text editor (understand \texttt{vim} and its macros). The third
+workload required more processing to be obtained.  First, a trace in standard
+workload format (swf) was obtained on a web
+archive\footnote{https://www.cs.huji.ac.il/labs/parallel/workload/logs.html}.
+The chosen workload was \texttt{KIT-FH2-2016-1.swf} simply because it is the
+most recent. Secondly,
+\texttt{evalys}\footnote{https://github.com/oar-team/evalys} allowed us to
+extract a subset of this workload lasting for a given period of time and with a
+given mean utilization of the resources. We chose a period of 10h with 80\%
+utilization of the resources so as to keep reasonable durations for experiences
+on a real testbed. Later on we experiment with larger workloads to test out
+Batkube's limits in terms of scalability.  The third step is translating this
+extracted workload to a \texttt{json} file that can be read by Batsim, which is
+done with a script written in Go.
+
+After extracting this subset, we are left off with a workload containing jobs
+spanning up to 45h and using up to 24048 cpu (or cpu cores), which is undoable
+at our scale on our emulated cluster. We need to trim job durations as well as
+cpu usage, as we are limited in cpu by the host machine. This is done during
+the translation to the \texttt{json} format. The durations are trimmed down to
+a maximum of one hour and the cpu usages are normalized so the maximum amount
+of cpu requested equals the amount of cpu available per node on the host
+machine.
+
+\subsection{Studied platforms and scheduler}
+
+TODO: describe the platform: 16x1cpu for the first two, TBD for the realistic
+wl (we run simulations to know what to expect in terms of experiment duration
+and adapt the platform so it is not too long).\\
+
+The entirety of the experiments are done with the default Kubernetes scheduler
+\textbf{kube-scheduler} release \textbf{v1.19.0.rc-4} (commit 382107e6c84).
+This choice was made because it was the scheduler used during development, and
+because supporting another scheduler would mean more development time which we
+could not afford.
+
+\section{Validation of the simulator outputs}
+
+TODO: With default parameters (timeout TBD with experiments results, max time step same, min delay 0), compare simulated and emulated results. (Gantt
+charts and graphs showing the distance between emulated and simulated
+indicators, cf batsim slides)
+
+Discussion:
+Container pull and startup time not accounted for in the simulation.
+
+\section{Study of the simulator parameters}
 
 The simulator has a few parameters that impact the simulation speed and
 accuracy. The objective is to study the effects of these parameters on the
 simulation to better understand the scheduler behavior when running in
 coordination with Batkube.\\
 
-The entirety of the experiments are done with the default Kubernetes scheduler \textbf{kube-scheduler} release \textbf{v1.19.0.rc-4}.
-
-\section{Testing against an emulated cluster}
-
-\subsubsection{Protocol}
-
-TODO: scripts to create a cluster with k3s, scripts to
-process swf files, evalys. Include illustration of the protocol.
-
-For each workload, run it 10 times for the first two, only a few times for the
-last one.
-
-\subsubsection{Limits}
-
-TODO: mention the limit on the amount of cpu and memory.
-
-\subsubsection{Results}
-
-TODO: Show the results, that will serve as a control for the other experiments.
-
-\section{Study of the simulator parameters}
-
-The objective here is to fine tune the simulator parameters in order to find a
-compromise between accuracy and scalability.
+The objective here is to fine tune the parameters in order to find a compromise
+between accuracy and scalability.
 
 The parameters are:
 \begin{itemize}
@@ -787,7 +855,7 @@ their default value, then we study what effects these parameters have in
 respect to one another, and finally we conduct scalability experiments to test
 Batkube's stability and performances on large workloads.
 
-\subsubsection{Minimum delay}
+\subsection{Minimum delay}
 
 We observed that not leaving enough time to the scheduler each cycle causes it
 to put itself in a deadlock state, or may make batsky-go crash. From there, no
@@ -802,13 +870,19 @@ computations correctly.\\
 
 For each workload, we compute the crash rate every 5ms, from 0ms to 50ms. Each
 point is made by running the simulation 15 times and recording the exit code,
-as well as the simulation time.
+as well as the simulation time. Other parameters: timeout=20ms; max-simulation-timestep=20s.
 
-TODO: graph: delay vs crash rate
+TODO: graph: delay vs crash rate vs simulation time in case of success (showing mean time, standard deviation, maybe max \& min values)
 
-TODO: graph: delay vs simulation time
+Note: This issue is resolved with the lastest commits on kubernetes scheduler.
+Show the graph for the earlier versions, to warn about this potential issue
+with earlier versions of the scheduler\\
 
-\subsubsection{Timeout}
+For the rest of the experiments, we pick the first minimum delay value that
+gets us 100\% success rate (or close to it). So that would be zero, considering
+the last note, which is very convenient.
+
+\subsection{Timeout}
 
 Decreasing this value leaves less time for the scheduler to react: for example,
 if the scheduler needs 30ms to make a decision upon reception of an update in
@@ -818,9 +892,18 @@ the decision on the next cycle which may happen several dozens of seconds later
 this will increase the simulation speed while leaving gaps in the decision
 process, causing a decrease in accuracy.\\
 
-TODO: graph - timeout vs accuracy vs simulation time
+For each workload we compute the total makespan, the mean waiting time (NOTE:
+maybe the stretch but it wouldn't make much sense as delays induced by the
+timeout value have nothing to do with the job length) and the simulation
+calculation time for a timeout value ranging from 5ms to 50ms, every 5ms. For
+each point we run the simulation 15 times and display the mean values and
+standard deviations for each indicators. Other parameters: min-delay=0ms; max-simulation-timestep=20s.
 
-\subsubsection{Maximum simulation time step}
+TODO: graphs: timeout vs simulation time, timeout vs distance between simulated
+indicators and emulated ones.
+Gantt charts to show the gaps.
+
+\subsection{Maximum simulation time step}
 
 Having a high maximum time step value will allow Batsim to jump forward further
 in time. This may result in skipping scheduler decisions that could have been
@@ -829,9 +912,13 @@ expect increasing this value to have an analogous effect to the timeout value:
 higher simulation speed, but also decreased accuracy due to gaps (delays) in
 the decision process.\\
 
-TODO: graph - time step vs acc vs sim time
+PROTOCOL: same as timeout. max timestep ranges from 1s to 100s with a
+logarithmic scale (1s, 2s, \ldots, 9s, 10s, 20s, \ldots, 90s, 100s) Other
+parameters: timeout=20ms; min-delay=0ms.
 
-\subsubsection{Parameters inter dependency}
+TODO: basically the same graphs as in the timeout
+
+\subsection{Parameters inter dependency}
 
 Studying the parameters independently is not enough, we need to study their
 impact relatively to each others.
@@ -845,15 +932,22 @@ of the scheduler, but also their length, multiplying the impact on accuracy.
 On the other hand, we do not except the \textit{minimum wait delay} to have any
 impact other than increasing the simulation stability.
 
-TODO: Facet graphs
+PROTOCOL: We know the simulations are statistically the same by now, and we're
+confident enough to run only one simulation per point. Timeout value ranges
+from 5ms to 50ms, max timestep ranges from 1s to 100s (logarithmic again).
 
-\subsubsection{Scalability experiments}
+TODO: Facet graphs: timestep vs timeout vs accuracy vs simulation time. We can
+define accuracy as one on the euclidean distance between emulated and simulated
+makespan and mean waiting time: \[\frac{1}{\sqrt{(makespan_{sim} -
+	makespan_{emu})^2 + (waitingtime_{sim} - waitingtime_{emu})^2}}\]
+
+\subsection{Scalability experiments}
 
 We have extracted a few workloads recorded on real systems to test out the
 scheduler performances in regard to scalability, that is to say the ability to
 run large workloads in a minimal amount of time.
 
-TODO: recreate large workloads on large systems
+PROTOCOL: go all out on large workloads and platform
 
 \backmatter
 \printbibliography
