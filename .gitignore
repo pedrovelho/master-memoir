@@ -6,3 +6,4 @@
 *.toc
 master-project-blx.bib
 *.out
+_minted-master-project/*

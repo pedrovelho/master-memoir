@@ -28,7 +28,8 @@
 % \usepackage{booktabs}
 % \usepackage{textcomp}%textquotesingle
 % \usepackage{multirow}
-% \usepackage{pgfplots}
+%
+\usepackage{minted}
 
 % \usetikzlibrary{arrows,shapes,positioning,shadows,trees}
 % \makesavenoteenv{tabular}
@@ -724,6 +725,31 @@ parameters and their effect on the outputs.
 
 \section{Experiments environment}
 
+The entirety of the experiments are done with the default Kubernetes scheduler
+\textbf{kube-scheduler} release \textbf{v1.19.0.rc-4} (commit 382107e6c84).
+This choice was made because it was the scheduler used during development, and
+because supporting another scheduler would mean more development time which we
+could not afford. Still, it is sufficient to experiment with the simulator and
+verify the scheduler's behavior in the simulation.
+
+The command used to run the scheduler is
+\begin{minted}{bash}
+	./scheduler --kubeconfig=<kubeconfig.yaml>
+	--kube-api-content-type=application/json --leader-elect=false
+	--scheduler-name=default
+\end{minted}
+\noindent Only the path to the \texttt{kubeconfig.yaml} changes to either point the the
+emulated or simulated cluster.
+
+Batkube is run with \mint{bash}| ./batkube --scheme=http --port=8001 |
+\noindent followed by the simulator options.
+
+Batsim is run with option \texttt{enable-compute-sharing}: for a reason
+unknown, Kubernetes scheduler tends to over allocate resources in some cases
+(especially with smaller jobs) which makes Batsim crash if this option is
+disabled. We must allow compute sharing even when it is not expected in order
+to capture the scheduler behavior as precisely as possible.
+
 \subsection{Real experimental testbed}
 
 In order to validate the simulator results we then need to compare it against
@@ -739,8 +765,9 @@ last one.
 TODO: mention the limit on the amount of cpu and memory as well as the large
 experience time. Mention the fact that jobs can't be scheduled across nodes:
 if we want to mimic a batch scheduling behavior we need to emulate one big node
-containing all the cpu we need, or use adapted workloads.
+containing all the cpu we need (which is not possible), or use adapted workloads.
 
+NOTE: show the graphs? (Gantt charts and aggregated metrics for each wl: makespan, mean waiting time etc. Show the average and standard deviation for these metrics)
 \subsection{Simulated testbed}
 
 TODO: Those are the options batkube is run with throughout the experiments.
@@ -780,24 +807,21 @@ affect scheduling behavior in simple cases.
 		trace of a real system.
 \end{itemize}
 
-
-TODO: Maybe illustrations to explain the process?
-
 The first two workloads are straight forward and could be generated with the
 use of a plain text editor (understand \texttt{vim} and its macros). The third
 workload required more processing to be obtained.  First, a trace in standard
 workload format (swf) was obtained on a web
 archive\footnote{https://www.cs.huji.ac.il/labs/parallel/workload/logs.html}.
-The chosen workload was \texttt{KIT-FH2-2016-1.swf} simply because it is the
-most recent. Secondly,
+The chosen workload was \texttt{KIT-FH2-2016-1.swf} because it is the most
+recent and is relatively lightweight. Secondly,
 \texttt{evalys}\footnote{https://github.com/oar-team/evalys} allowed us to
 extract a subset of this workload lasting for a given period of time and with a
 given mean utilization of the resources. We chose a period of 10h with 80\%
-utilization of the resources so as to keep reasonable durations for experiences
-on a real testbed. Later on we experiment with larger workloads to test out
-Batkube's limits in terms of scalability.  The third step is translating this
-extracted workload to a \texttt{json} file that can be read by Batsim, which is
-done with a script written in Go.
+utilization of the resources so as to keep reasonable experiment durations --
+Later on we experiment with larger workloads to test out Batkube's limits in
+terms of scalability.  The third step is translating this extracted workload to
+a \texttt{json} file that can be read by Batsim, which is done with a script
+written in Go.
 
 After extracting this subset, we are left off with a workload containing jobs
 spanning up to 45h and using up to 24048 cpu (or cpu cores), which is undoable
@@ -806,7 +830,8 @@ cpu usage, as we are limited in cpu by the host machine. This is done during
 the translation to the \texttt{json} format. The durations are trimmed down to
 a maximum of one hour and the cpu usages are normalized so the maximum amount
 of cpu requested equals the amount of cpu available per node on the host
-machine.
+machine. Otherwise, the job would be unschedulable which would not present much
+interest.
 
 \subsection{Studied platforms and scheduler}
 
@@ -814,11 +839,6 @@ TODO: describe the platform: 16x1cpu for the first two, TBD for the realistic
 wl (we run simulations to know what to expect in terms of experiment duration
 and adapt the platform so it is not too long).\\
 
-The entirety of the experiments are done with the default Kubernetes scheduler
-\textbf{kube-scheduler} release \textbf{v1.19.0.rc-4} (commit 382107e6c84).
-This choice was made because it was the scheduler used during development, and
-because supporting another scheduler would mean more development time which we
-could not afford.
 
 \section{Validation of the simulator outputs}
 
@@ -941,13 +961,16 @@ define accuracy as one on the euclidean distance between emulated and simulated
 makespan and mean waiting time: \[\frac{1}{\sqrt{(makespan_{sim} -
 	makespan_{emu})^2 + (waitingtime_{sim} - waitingtime_{emu})^2}}\]
 
-\subsection{Scalability experiments}
+\section{Scalability experiments and scheduler limits}
 
 We have extracted a few workloads recorded on real systems to test out the
 scheduler performances in regard to scalability, that is to say the ability to
 run large workloads in a minimal amount of time.
 
 PROTOCOL: go all out on large workloads and platform
+
+TODO: on small workloads the scheduler tends to over allocate when it is not supposed
+to: same behavior in emulation and simulation
 
 \backmatter
 \printbibliography
