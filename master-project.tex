@@ -265,13 +265,16 @@ experimentations, results)
 
 \chapter{State of the art}
 
-TODO: maybe a summary of this section. (1 - kubernetes put in context, 2 -
-focus on the scheduling problem, 3 - studying computer infra in general, 4 -
-Batsim is a tool very well suited for answering the scheduling problem)
+This section is organized as follow. First we put Kubernetes in context, in
+light of the advances made in web application development. As we will see,
+despite these adavances in the automation of resource management many
+fundamental questions remain that can only be anwsered by extensive studies on
+computer systems. One such question is the problem of scheduling tasks on
+compute resources, which we briefly present. We end this section by presenting
+the concepts of Batsim which is a distributed system simulator especially well
+suited for studies on scheduling alrogithms.
 
 \section{Cloud Computing}
-
-TODO: small intro on this part to clarify that this is to put Kubernetes in context.
 
 In the early stages of application development, organizations used to run their
 services on physical servers. With this direct approach came many challenges
@@ -319,14 +322,16 @@ automating of the process of deploying, maintaining and scaling containerized
 applications. It is industry grade and is now the de-facto solution for
 container orchestration.
 
-TODO: outro to explain that eventhough this paradigm enabled developing new
-applications with ease, many questions remain: what infrastructure would be
-best suited for my application? how would different topologies and scheduling
-policies would affect performances?  First, let's talk about the scheduling
-problem (in general) because it is the focus of experimentation with Batsim,
-and then discuss the general problem of the study of computing infrastructures.
+
 
 \section{Studying computer infrastructures} \label{study-computing-infra}
+
+Eventhough this paradigm enabled developing new applications with ease, many
+questions remain: what type of infrastructure would be best suited for my
+application? Would my application benefit from more cpu cores? How would
+different scheduling policies affect my application? Would my batch jobs
+compute faster with a different topology? To answer these interrogations one
+must conduct studies to experiment with different configurations.\\
 
 Studying an entire computing infrastructure is not an easy feat, first because
 every infrastructure is unique. There are as many types of infrastructure as
@@ -355,10 +360,9 @@ as described in\cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
 vitro} and \textit{in silico} studies, which correspond respectively to
 experiments on real testbeds, emulation and simulation.  
 
-TODO : intro on the next sections
-%The next sections build upon \cite{legrand2015scheduling} and
-%\cite{casanova:hal-01017319} and are aimed at depicting the current landscape
-%of experimentation on distributed systems.
+The next parts are mostly built upon \cite{legrand2015scheduling} and
+\cite{casanova:hal-01017319} and are aimed at depicting the current landscape
+of experimentation on distributed systems.
 
 \subsubsection{\textit{in vivo} and \textit{in vitro} studies}
 
@@ -732,23 +736,23 @@ because supporting another scheduler would mean more development time which we
 could not afford. Still, it is sufficient to experiment with the simulator and
 verify the scheduler's behavior in the simulation.
 
-The command used to run the scheduler is
-\begin{minted}{bash}
-	./scheduler --kubeconfig=<kubeconfig.yaml>
-	--kube-api-content-type=application/json --leader-elect=false
-	--scheduler-name=default
-\end{minted}
-\noindent Only the path to the \texttt{kubeconfig.yaml} changes to either point the the
-emulated or simulated cluster.
+% The command used to run the scheduler is
+% \begin{minted}{bash}
+% 	./scheduler --kubeconfig=<kubeconfig.yaml>
+% 	--kube-api-content-type=application/json --leader-elect=false
+% 	--scheduler-name=default
+% \end{minted}
+% \noindent Only the path to the \texttt{kubeconfig.yaml} changes to either point the the
+% emulated or simulated cluster.
 
-Batkube is run with \mint{bash}| ./batkube --scheme=http --port=8001 |
-\noindent followed by the simulator options.
-
-Batsim is run with option \texttt{enable-compute-sharing}: for a reason
-unknown, Kubernetes scheduler tends to over allocate resources in some cases
-(especially with smaller jobs) which makes Batsim crash if this option is
-disabled. We must allow compute sharing even when it is not expected in order
-to capture the scheduler behavior as precisely as possible.
+% Batkube is run with \mint{bash}| ./batkube --scheme=http --port=8001 |
+% \noindent followed by the simulator options.
+% 
+% Batsim is run with option \texttt{enable-compute-sharing}: for a reason
+% unknown, Kubernetes scheduler tends to over allocate resources in some cases
+% (especially with smaller jobs) which makes Batsim crash if this option is
+% disabled. We must allow compute sharing even when it is not expected in order
+% to capture the scheduler behavior as precisely as possible.
 
 \subsection{Real experimental testbed}
 
@@ -756,6 +760,14 @@ In order to validate the simulator results we then need to compare it against
 workloads run on a real cluster. For reproducibility and simplicity sake, we
 choose to validate the simulator with an emulated cluster run in
 containers.\\
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.7]{./imgs/prot-k3s.png}
+	\caption{An emulated experiment.}
+	\label{fig:emulated-expe}
+\end{figure}
 
 TODO: scripts to create a cluster with k3s. 
 
@@ -772,17 +784,19 @@ NOTE: show the graphs? (Gantt charts and aggregated metrics for each wl: makespa
 
 TODO: Those are the options batkube is run with throughout the experiments.
 \begin{itemize}
-	\item base-simulation-timestep: 100ms. Starting value for the
+	\item \texttt{base-simulation-timestep}: 100ms. Starting value for the
 		simulation timestep, which then increases with the implemented
 		backoff policy. --> Can be the object of an experiment, not
 		sure if it impacts the simulation.
-	\item backoff-multiplier: 2. Same as last one, not sure if it has an impact really.
-	\item detect-scheduler-deadlock: true. Obligatory for automating experiments
-	\item scheduler-crash-timeour: 5s (more than enough)
-	\item fast-forward-on-no-pending-jobs: the scheduler is not susceptible
-		to reschedule running jobs (there is a de-scheduler for that)
-		so we might as well fast forward when there is nothing to
-		schedule.
+	\item \texttt{backoff-multiplier}: 2. Same as last one, not sure if it
+		has an impact really.
+	\item \texttt{detect-scheduler-deadlock}: true. Obligatory for
+		automating experiments
+	\item \texttt{scheduler-crash-timeout}: 5s (more than enough)
+	\item \texttt{fast-forward-on-no-pending-jobs}: the scheduler is not
+		susceptible to reschedule running jobs (there is a de-scheduler
+		for that) so we might as well fast forward when there is
+		nothing to schedule.
 \end{itemize}
 
 The other parameters are precised for each experiment.
@@ -792,10 +806,9 @@ The other parameters are precised for each experiment.
 We consider three workloads, representing three different situations. The first
 two are simplistic and very controlled, and the last one depicts a more
 realistic case. In all cases the required resources are only quantified in cpu
-only to simplify the study. Adding requests in memory is instantaneous if we
-want to conduct more exhaustive studies on scheduling policies, but in our case
-we are only interested in evaluating the simulator itself and how it does not
-affect scheduling behavior in simple cases.
+only to simplify the study. Note that Batkube does support memory requets, we
+just do not wish to add this other layer of complexity to our experiments.
+
 \begin{itemize}
 	\item A \textit{burst} workload, consisting in an important amount of
 		jobs submitted at once.  200 delays with duration 170s and
