@@ -515,9 +515,31 @@ TODO: why batsim?
 Because it was developed at the lig and they want to expand its capabilities.
 It is language agnostic to very convenient to work with.
 
-\chapter{Implementation}
+\chapter{Integrating the simulator into Kubernetes ecosystem}
 
-\section{Batsim}
+\section{Problematic}
+
+Batsim is able to run simulations of any distributed system, to study any
+event-based scheduler that would implement its message protocol. Kubernetes is
+a piece of software where all its component, including the scheduler, revolve
+around a central API. Everything is then asynchronous as the API can be
+accessed anytime by any component.
+
+The question that arises is, can we adapt Batsim to make it support Kubernetes
+schedulers? In other words, is it possible to implement an adaptive layer
+between a synchronous event based simulator like Batsim and a scheduler
+implemented following the asynchronous paradigms of APIs?
+
+It will follow that in order to do so, we re-implemented an API following
+Kubernetes API specifications and intercepted the scheduler's time to
+synchronize it with the simulation time. This allows us to run lengthy
+workloads in seconds using a scheduler otherwise supposed to rely on ``real''
+machine time. We first describe some technical concepts about Kubernetes and
+Batsim, and then describe how we re-implemented the API, intercepted the time,
+and handled the synchronization of the different times between Batsim and the
+scheduler.
+
+\section{Batsim concepts}
 
 \section{Kubernetes concepts}
 
@@ -604,12 +626,7 @@ operations.
 %the very well established HPC ecosystem, but that time may come soon as
 %containers are becoming more and more integrated in modern infrastructures.
 
-\section{Objectives}
 
-The goal of this project is to design and implement Batkube, which will be an
-interface between Batsim and Kubernetes schedulers. With this interface, we
-want to compare Batsim results gainst data from a real Kubernetes cluster,
-given HPC workloads.
 
 \section{Technical challenges}
 \subsection{Translation}
