@@ -839,7 +839,11 @@ just do not wish to add this other layer of complexity to our experiments.
 
 The first two workloads are straight forward and could be generated with the
 use of a plain text editor (understand \texttt{vim} and its macros). The third
-workload required more processing to be obtained.  First, a trace in standard
+workload required more processing to be obtained.  
+
+\subsubsection{Standard Workload Format processing}
+
+First, a trace in standard
 workload format (swf) was obtained on a web
 archive\footnote{https://www.cs.huji.ac.il/labs/parallel/workload/logs.html}.
 The chosen workload was \texttt{KIT-FH2-2016-1.swf} because it is the most
@@ -872,9 +876,12 @@ and adapt the platform so it is not too long).\\
 
 \section{Validation of the simulator outputs}
 
-TODO: With default parameters (timeout TBD with experiments results, max time step same, min delay 0), compare simulated and emulated results. (Gantt
-charts and graphs showing the distance between emulated and simulated
-indicators, cf batsim slides)
+TODO: With default parameters (timeout TBD with experiments results, max time step same, min delay 0), compare simulated and emulated results. 
+
+Here : the Gantt charts from evalys.
+
+Study on two metrics : makespan and mean\_waiting\_time. Show the box plots for
+simulated and emulated metrics.
 
 Discussion:
 Container pull and startup time not accounted for in the simulation.
@@ -909,10 +916,10 @@ Batkube's stability and performances on large workloads.
 
 We observed that not leaving enough time to the scheduler each cycle causes it
 to put itself in a deadlock state, or may make batsky-go crash. From there, no
-decision is made for the rest of the simulation. The
-\texttt{detect-scheduler-deadlock} option allows systematically detect such
-crashes based on a timeout value, making Batkube exit the simulation with code
-1 when it happens.
+decision is made for the rest of the simulation. 
+% The \texttt{detect-scheduler-deadlock} option allows systematically detect such
+% crashes based on a timeout value, making Batkube exit the simulation with code
+% 1 when it happens.
 
 We expect to see a very high percentage of crashes when this value is low, that
 will decrease until there is enough time for the scheduler to make its
@@ -922,7 +929,12 @@ For each workload, we compute the crash rate every 5ms, from 0ms to 50ms. Each
 point is made by running the simulation 15 times and recording the exit code,
 as well as the simulation time. Other parameters: timeout=20ms; max-simulation-timestep=20s.
 
-TODO: graph: delay vs crash rate vs simulation time in case of success (showing mean time, standard deviation, maybe max \& min values)
+TODO: 
+graph: 
+
+delay vs crash rate
+
+delay vs simulation time in case of success. Two options : mean values with error bars (max \& min values) or overlay the 15 curves.
 
 Note: This issue is resolved with the lastest commits on kubernetes scheduler.
 Show the graph for the earlier versions, to warn about this potential issue
@@ -945,13 +957,18 @@ process, causing a decrease in accuracy.\\
 For each workload we compute the total makespan, the mean waiting time (NOTE:
 maybe the stretch but it wouldn't make much sense as delays induced by the
 timeout value have nothing to do with the job length) and the simulation
-calculation time for a timeout value ranging from 5ms to 50ms, every 5ms. For
-each point we run the simulation 15 times and display the mean values and
-standard deviations for each indicators. Other parameters: min-delay=0ms; max-simulation-timestep=20s.
+calculation time for a timeout value ranging from 5ms to 50ms, every 1ms. Other
+parameters: min-delay=0ms; max-simulation-timestep=20s.
 
-TODO: graphs: timeout vs simulation time, timeout vs distance between simulated
-indicators and emulated ones.
+TODO: 
+graphs: 
+
 Gantt charts to show the gaps.
+
+timeout vs simulation time
+
+timeout vs makespan: scatter plot, plot a dotted line showing the emulated value. Same for timeout vs mean_waiting_time.
+
 
 \subsection{Maximum simulation time step}
 
