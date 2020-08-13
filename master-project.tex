@@ -8,6 +8,7 @@
 % personal packages
 \usepackage [includehead, margin=1.5cm]{geometry}                % See geometry.pdf to learn the layout options. There are lots.
 \usepackage{graphicx} % include images
+\usepackage{wrapfig} % wrap text around figures
 \usepackage{hyperref} % urls, hyperlinks, etc
 % \usepackage{pdfpages} % include pdf pages
 \usepackage{enumitem} % customize itemize
@@ -526,12 +527,12 @@ around a central API. Everything is then asynchronous as the API can be
 accessed anytime by any component.
 
 The question that arises is, can we adapt Batsim to make it support Kubernetes
-schedulers? In other words, is it possible to implement an adaptive layer
-between a synchronous event based simulator like Batsim and a scheduler
-implemented following the asynchronous paradigms of APIs?
+schedulers? Is it possible to implement an adaptive layer between a synchronous
+event based simulator like Batsim and a scheduler implemented following the
+asynchronous paradigms of APIs?
 
 It will follow that in order to do so, we re-implemented an API following
-Kubernetes API specifications and intercepted the scheduler's time to
+Kubernetes specifications and intercepted the scheduler's time to
 synchronize it with the simulation time. This allows us to run lengthy
 workloads in seconds using a scheduler otherwise supposed to rely on ``real''
 machine time. We first describe some technical concepts about Kubernetes and
@@ -540,6 +541,20 @@ and handled the synchronization of the different times between Batsim and the
 scheduler.
 
 \section{Batsim concepts}
+
+A Batsim simulation is divided into to processes: Batsim itself, and the
+decision process (the scheduler). Both process exchange via the ZeroMQ
+request-reply
+pattern\footnote{\url{http://zguide.zeromq.org/page:all\#Ask-and-Ye-Shall-Receive}}.
+As a consequence, the scheduler must be event based and implement Batsim's
+Protocol.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{imgs/batsim-sequence-diag.png}
+	\captionsource{Exchanges between Batsim and the scheduler}{https://batsim.readthedocs.io/en/latest/protocol.html}
+	\label{fig:bati-seq-diag}
+\end{figure}
 
 \section{Kubernetes concepts}
 
@@ -894,14 +909,15 @@ simulation to better understand the scheduler behavior when running in
 coordination with Batkube.\\
 
 The objective here is to fine tune the parameters in order to find a compromise
-between accuracy and scalability.
+between accuracy and scalability. We want to know which combination lead us to
+the most stable results, while keeping simulation time as low as possible.
 
 The parameters are:
 \begin{itemize}
-	\item The \textit{timeout} value when waiting for scheduler decisions.
-		Default value: 20ms.
 	\item The \textit{minimum delay} we have to spend waiting for the
 		scheduler. Default value: 10ms.
+	\item The \textit{timeout} value when waiting for scheduler decisions.
+		Default value: 20ms.
 	\item The \textit{maximum simulation time step}, which is the maximum
 		amount of time Batsim is allowed to jump forward in time.
 		Default value: 50s.
@@ -914,9 +930,36 @@ Batkube's stability and performances on large workloads.
 
 \subsection{Minimum delay}
 
-We observed that not leaving enough time to the scheduler each cycle causes it
-to put itself in a deadlock state, or may make batsky-go crash. From there, no
-decision is made for the rest of the simulation. 
+Earlier in the development of batkube we noticed that not leaving enough time
+to the scheduler each cycle lead it to crashes and deadlocks, ultimately
+failing the simulation. This time is independent from any decision making we
+would receive from it which is why it is called \textit{minimum wait delay}
+instead of a plain \textit{timeout} - which is in fact another parameter we
+will study later.
+
+For each workload, we compute the crash rate every 5ms, from 0ms to 50ms. Each
+point is made by running the simulation 15 times and recording the exit code as
+well as the simulation time. The other parameters are: \texttt{timeout=20ms};
+\texttt{max-simulation-timestep=20s}. As we will see later those do not offer
+acceptable simulation results but they allow us to run prompt simulations, as
+accuracy do not concern us here.\\
+
+\begin{figure}[H]
+	\begin{subfigure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{imgs/min-delay_spaced_200_delay170_crash_old.png}
+\end{subfigure}
+	\begin{subfigure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{imgs/min-delay_spaced_200_delay170_duration_old.png}
+\end{subfigure}
+	\caption{Minimum delay against crash rate, outdated scheduler.}
+	\label{fig:min-delay_old}
+\end{figure}
+
+As we can see on figure \ref{fig:min-delay_old}, the crash rate decreases
+dramatically as soon as the minimum delay reaches a certain threshold which is 10ms here.
+
 % The \texttt{detect-scheduler-deadlock} option allows systematically detect such
 % crashes based on a timeout value, making Batkube exit the simulation with code
 % 1 when it happens.
@@ -925,9 +968,6 @@ We expect to see a very high percentage of crashes when this value is low, that
 will decrease until there is enough time for the scheduler to make its
 computations correctly.\\
 
-For each workload, we compute the crash rate every 5ms, from 0ms to 50ms. Each
-point is made by running the simulation 15 times and recording the exit code,
-as well as the simulation time. Other parameters: timeout=20ms; max-simulation-timestep=20s.
 
 TODO: 
 graph: 
@@ -967,8 +1007,8 @@ Gantt charts to show the gaps.
 
 timeout vs simulation time
 
-timeout vs makespan: scatter plot, plot a dotted line showing the emulated value. Same for timeout vs mean_waiting_time.
-
+timeout vs makespan: scatter plot, plot a dotted line showing the emulated
+value. Same for timeout vs mean\_waiting\_time.
 
 \subsection{Maximum simulation time step}
 
