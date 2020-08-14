@@ -38,6 +38,109 @@ Protocol.
 	\label{fig:bati-seq-diag}
 \end{figure}
 
+Batsim messaging interface is based on its protocol. Each message is composed
+of the current simulation time, as well as a list of events either from Batsim
+to the scheduler, or from the scheduler to Batsim. Figure \ref{fig:batmsg_ex}
+depicts a standard message sent from the scheduler to Batsim.
+
+\begin{figure}
+\begin{minted}{js}
+{
+  "now": 1024.24,
+  "events": [
+    {
+      "timestamp": 1000,
+      "type": "EXECUTE_JOB",
+      "data": {
+        "job_id": "workload!job_1234",
+        "alloc": "1 2 4-8",
+      }
+    },
+    {
+      "timestamp": 1012,
+      "type": "EXECUTE_JOB",
+      "data": {
+        "job_id": "workload!job_1235",
+        "alloc": "12-100",
+      }
+    }
+  ]
+}
+\end{minted}
+\caption{Example of a Batsim message}
+\label{fig:batmsg_ex}
+\end{figure}
+
+Batkube's features being very basic because we focused on building a working
+proof of concept rather than a fully fledged Kubernetes simulator, we only
+consider a subset of these messages that we briefly present here. More
+information on Batsim's protocol is available on Batsim
+documentation\footnote{https://batsim.readthedocs.io/en/latest/protocol.html}
+
+\subsubsection{From Batsim to the scheduler}
+
+\paragraph{SIMULATION\_BEGINS}
+contains mostly information about the available resources in the cluster, with
+Batsim's configuration.
+
+\paragraph{SIMULATION\_ENDS}
+is sent at the very end of the simulation: all jobs have finished, and no more
+jobs are left in the queues. Batsim exits this message.
+
+\paragraph{JOB\_SUBMITTED}
+notifies the scheduler that a new job has been submitted. It contains
+information about the job type, id and specifications. We only consider jobs of
+type \textit{delay} to simplify the models. Delay jobs specifications boil down
+to the delay length, to which we add resource requests.
+
+\paragraph{JOB\_COMPLETED}
+notifies the scheduler that a job has ended, specifying the reason for it. We
+only consider situations where all jobs complete correctly. Their state is then
+always COMPLETED\_SUCCESSFULLY in our case.
+
+\paragraph{REQUESTED\_CALL}
+is an awnser to a CALL\_ME\_LATER event sent by the scheduler.
+
+\subsubsection{From the scheduler to Batsim}
+
+\paragraph{CALL\_ME\_LATER}
+is an incentive from the scheduler for Batsim to wake up at a certain
+timestamp. When the timestamp is reached in the simulation, Batsim will send a
+REQUESTED\_CALL to the scheduler. In our case, this particular exchange will
+serve as the base for time synchronisation between the scheduler and Batsim.
+
+\paragraph{EXECUTE\_JOB}
+is sent when the scheduler has made a decision. It contains the id of the job
+at stake and the id of the resources it has been scheduled to.
+
+\subsubsection{Bidirectional}
+
+\paragraph{NOTIFY}
+is used to send some information to the other peer. In our case, we use the
+NOTIFY containing no\_more\_static\_job\_to\_submit to determine if the
+simulation has ended: knowing that there are no more jobs susceptible to be
+scheduled allow us to fast forward to the end of the simulation, thus saving
+execution time.\\
+
+Batsim's output takes the form of a csv file containg information about the
+jobs executions. Mainly we take interest in their submission time, execution
+time and waiting time. Again, a detailed list of Batsim outputs can be found on
+the
+documentation\footnote{https://batsim.readthedocs.io/en/latest/output-jobs.html}.
+During our experimentations with Batkube we interest ourselves in two metrics
+that can be computed from this output:
+\begin{itemize}
+	\item The \textit{makespan}, which is the total length of the
+		simulation, or the time \textit{span} that was required to
+		\textit{make} all the jobs. It is defined as the timestamp at
+		which the last job finished executing, minus the origin (in
+		this case, zero).
+	\item The \textit{mean\_waiting\_time}, which is the mean amount of
+		time the jobs spent waiting for a scheduling decision. The
+		waiting time is defined by the duration between the submission
+		time and the starting time (that is equivalent to the
+		scheduling time here).
+\end{itemize}
 \section{Kubernetes concepts}
 
 The basic processing unit of Kubernetes is called a \textbf{pod} which is
