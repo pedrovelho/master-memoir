@@ -774,11 +774,6 @@ that complies with the host system capacity (which is very unlikely), or we
 adapt the workload so the jobs requirements do not exceed the host
 capabilities (see section \ref{sec:studied-workloads}).
 
-\subsection{Simulated testbed}
-
-
-The other parameters are precised for each experiment.
-
 \subsection{Studied workloads} \label{sec:studied-workloads}
 
 We consider three workloads, representing three different situations. The first
@@ -828,12 +823,23 @@ of cpu requested equals the amount of cpu available per node on the host
 machine. Otherwise, the job would be unschedulable which would not present much
 interest.
 
-\subsection{Studied platforms and scheduler}
+\subsection{Studied platforms}
 
-TODO: describe the platform: 16x1cpu for the first two, TBD for the realistic
-wl (we run simulations to know what to expect in terms of experiment duration
-and adapt the platform so it is not too long).\\
+The platform used for the first two workloads, \textit{burst} and
+\textit{spaced} is composed of 16 nodes each heaving one cpu. For the
+\textit{realistic} workload however, we use a single node composed of six cores
+for the following reasons.
 
+First, the host machines where the experiments were conducted had six cpu cores
+available. This means that if we want to be able to run an emulated cluster
+equivalent to this platform we can't exceed six cpu per node.  We use the
+maximum amount of available cores in order so as not to obtain too low values
+when normalizing the resource requests on the jobs. Indeed, Kubernetes only
+allows for a precision of 1 milicpu, so any value bellow that is not considered
+a significant number. Normalizing on six cpus instead of one allows us to get
+more significant number. Also, only one node gives us a satisfactory overall
+resource usage: with more than one node one resource is almost always available
+making the scheduling operations trivial.
 
 \section{Study of the simulator parameters}
 
@@ -849,17 +855,15 @@ the most stable results, while keeping simulation time as low as possible.
 The parameters are:
 \begin{itemize}
 	\item The \textit{minimum delay} we have to spend waiting for the
-		scheduler. Default value: 10ms.
+		scheduler.
 	\item The \textit{timeout} value when waiting for scheduler decisions.
-		Default value: 20ms.
 	\item The \textit{maximum simulation time step}, which is the maximum
 		amount of time Batsim is allowed to jump forward in time.
-		Default value: 50s.
 \end{itemize}
 
 We first study these parameters one by one by fixing the other parameters to
-their default value, then we study what effects these parameters have in
-respect to one another, and finally we conduct scalability experiments to test
+some other value, then we study what effects these parameters have in respect
+to one another, and finally we conduct scalability experiments to test
 Batkube's stability and performances on large workloads.
 
 \subsection{Minimum delay}
@@ -880,7 +884,7 @@ accuracy do not concern us here.\\
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.5\textwidth]{imgs/min-delay_spaced_200_delay170_crash_old.png}
+	\includegraphics[width=0.45\textwidth]{imgs/min-delay_spaced_200_delay170_crash_old.png}
 	\caption{Crash rate of the simulations against minimum delay.}
 	\label{fig:min-delay_crash}
 \end{figure}
@@ -930,17 +934,17 @@ compare the results against the emulated results in order to estimate the
 accuracy of the simulation. The other parameters are set to:
 \texttt{min-delay=0ms}, \texttt{max-simulation-timestep=20s}
 
-\begin{figure}[H]
+\begin{figure}
 	\begin{subfigure}{.5\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{imgs/timeout_duration.png}
-		\caption{Simulation time against timeout}
+		\caption{}
 		\label{fig:timeout_duration}
 	\end{subfigure}
 	\begin{subfigure}{.5\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{imgs/timeout_makespan.png}
-		\caption{Simulation time against makespan}
+		\caption{}
 		\label{fig:timeout_makespan}
 	\end{subfigure}
 
@@ -948,7 +952,7 @@ accuracy of the simulation. The other parameters are set to:
 	\begin{subfigure}{.5\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{imgs/timeout_mwt.png}
-		\caption{Simulation time against mean waiting time}
+		\caption{}
 		\label{fig:timeout_mwt}
 	\end{subfigure}
 	\caption{Effect of the timeout value on the simulation}
@@ -1040,8 +1044,9 @@ TODO: on small workloads the scheduler tends to over allocate when it is not sup
 to: same behavior in emulation and simulation
 
 
+\newpage
 \appendix
-\appendixpage
+%\appendixpage
 \addappheadtotoc
 \section{Reproducing the experiments}
 
