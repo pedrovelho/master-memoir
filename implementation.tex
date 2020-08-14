@@ -1,0 +1,196 @@
+\chapter{Integrating the simulator into Kubernetes}
+
+\subsubsection{Problematic}
+
+Batsim is able to run simulations of any distributed system, to study any
+event-based scheduler that would implement its message protocol. Kubernetes is
+a piece of software where all its component, including the scheduler, revolve
+around a central API. Everything is then asynchronous as the API can be
+accessed anytime by any component.
+
+The question that arises is, can we adapt Batsim to make it support Kubernetes
+schedulers? Is it possible to implement an adaptive layer between a synchronous
+event based simulator like Batsim and a scheduler implemented following the
+asynchronous paradigms of APIs?
+
+It will follow that in order to do so, we re-implemented an API following
+Kubernetes specifications and intercepted the scheduler's time to
+synchronize it with the simulation time. This allows us to run lengthy
+workloads in seconds using a scheduler otherwise supposed to rely on ``real''
+machine time. We first describe some technical concepts about Kubernetes and
+Batsim, and then describe how we re-implemented the API, intercepted the time,
+and handled the synchronization of the different times between Batsim and the
+scheduler.
+
+\section{Batsim concepts}
+
+A Batsim simulation is divided into two processes: Batsim itself and the
+decision process (the scheduler). Both process exchange via the ZeroMQ
+request-reply
+pattern\footnote{\url{http://zguide.zeromq.org/page:all\#Ask-and-Ye-Shall-Receive}}.
+As a consequence, the scheduler must be event based and implement Batsim's
+Protocol.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{imgs/batsim-sequence-diag.png}
+	\captionsource{Exchanges between Batsim and the scheduler}{https://batsim.readthedocs.io/en/latest/protocol.html}
+	\label{fig:bati-seq-diag}
+\end{figure}
+
+\section{Kubernetes concepts}
+
+The basic processing unit of Kubernetes is called a \textbf{pod} which is
+composed of one or several containers and volumes\footnote{A volume is some
+	storage space on the host machine that can be linked to containers, so
+	they can read persistent information or store data in the long term}.
+In the cloud native context a pod most often hosts a service or micro-service.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.5]{./imgs/node-overview.png}
+	\captionsource{Node overview}{https://kubernetes.io/docs/tutorials/kubernetes-basics/explore/explore-intro/}
+	\label{fig:node-overview}
+\end{figure}
+
+Pods are bundled together in \textbf{nodes} (figure \ref{fig:node-overview})
+which are either physical or virtual machines. They represent another barrier
+to pass through to access the outside world which can be useful to add layers
+of security or facilitate communication between pods. Nodes take the idea of
+containerisation further by encapsulating the already encapsulated services.
+Each node runs at least one pod and also one \textbf{kubelet} which is a
+process responsible for communicating with the rest of Kubernetes (or more
+precisely, with the master node which in turns communicates with the api
+server). A set of nodes is called a \textbf{cluster}. Each Kubernetes instance
+is responsible for running a cluster.
+
+Kubernetes revolves its API server which is its central component (figure
+\ref{fig:kube-components}). The majority of operations between components go
+through this REST API like user interactions through kubectl or scheduling
+operations.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{./imgs/components-of-kubernetes.png}
+	\captionsource{Components of Kubernetes}{https://kubernetes.io/docs/concepts/overview/components/}
+	\label{fig:kube-components}
+\end{figure}
+
+%\subsection{HPC and Kubernetes}
+%The difference between HPC and Cloud Native computing lies in the workloads
+%they are intended to tackle.  Kubernetes was designed for Cloud Native
+%applications. Services or micro services are run in containers and are expected
+%to be available at all times : they are replicated as many times as the user
+%desires and restarted whenever a failure occurs. High availability is at the
+%core of Kubernetes container management.  On the other hand, depending on
+%scheduling policies, HPC is focused on user wait time, maximizing resource
+%usage, optimizing energy costs... For instance, in case of failure, it is
+%sometimes not sufficient to restart the single job that failed : the entire
+%submission must be re-run if it is part of several jobs computed in parallel.
+%
+%Kubernetes is now the standard for AI and Machine Learning as shown by the many
+%efforts at making this coupling an efficient
+%environment\cite{lee2017design}\cite{233001}\cite{10.1145/3154842.3154845},
+%which brought an increasing interest for container driven HPC aswell and
+%Kubernetes for HPC in particular. Batch schedulers such as
+%kube-batch\footnote{\url{https://github.com/kubernetes-sigs/kube-batch}} have
+%been implemented for kube, and numerous HPC applications like
+%slurm\footnote{\url{https://slurm.schedmd.com/containers.html}} now support containers as well.
+%
+%Indeed, containers have many advantages that HPC users can benefit from. Here
+%are some notable ones:
+%\begin{itemize}
+%	\item First off, research has shown that Kuberenetes offer similar
+%		performance to more standard bare metal HPC\cite{8950981}.
+%	\item Users will get the same environment everywhere making up for a
+%		uniform and standardized workplace.
+%	\item Portability : users could seamlessly hop from one infrastructure
+%		to another based on their needs and criteria like price,
+%		performance, and capabilities rather than compatibility.
+%	\item Encapsulation : HPC applications often rely on complex
+%		dependencies that can be easily concealed into containers.
+%\end{itemize}
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[scale=0.5]{./imgs/hpc-container.jpg}
+%	\captionsource{The container technology for HPC}{https://www.hpcwire.com/2019/09/19/kubernetes-containers-and-hpc/}
+%	\label{fig:hpc-container}
+%\end{figure}
+%
+%Despite all those advantages, Kubernetes is not ready yet to be used in proper
+%HPC environment because it lacks vital components like a proper batch job
+%queuing system, and support for MPI applications. It cannot yet compete against
+%the very well established HPC ecosystem, but that time may come soon as
+%containers are becoming more and more integrated in modern infrastructures.
+
+
+
+\section{Translation}
+
+TODO
+
+\section{Time interception}
+
+TODO: explain how channels work briefly, to understand the algorithms.
+
+\SetKwInput{KwInput}{Input}
+\SetKwInput{KwOutput}{Output}
+
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\KwInput{req: request channel, res: result channel map}
+\While{Batkube is not ready} {
+	wait\;
+}
+requests = []request\;
+\While{req is not empty} {
+	m = $<$- req \tcc{Non blocking receive}
+	requests = append(requests, m)\;
+}
+sendToBatkube(requests) \tcc{Only requests with duration > 0 are actually sent. Batkube will always anwser.}
+now = responseFromBatkube()\;
+\For{m in range requests} {
+	res[m.id] $<$-now \tcc{The caller continues execution upon reception}
+}
+
+	
+\caption{Requester loop}
+\label{alg:reqLoop}
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\KwResult{Current simulation time}
+\KwInput{d: timer duration, req: request channel, res: response channel map}
+\KwOutput{now : simulation time}
+
+\If{requester loop is not running}{
+	go runRequesterLoop() \tcc{There can only be one loop runing at a time}
+}
+id = newUUID()\;
+m = newRequestMessage(d, id) \tcc{Requests are identified using uuids}
+resChannel = newChannel()\;
+res[id] = resChannel \tcc{A channel is associated with each request}
+req $<$- m \tcc{The code blocks here until request is handled}
+now = $<$-resChannel \tcc{The code blocks here until response is sent by the requester loop}
+return now\;
+\caption{Time request (time.now())}
+\label{alg:now}
+\end{algorithm}
+
+
+\section{Time synchronization}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/lignes_de_temps.png}
+	\caption{Time sync between the three components. The broker has to take
+	into account both machine time and simulation time.}
+	\label{fig:time_sync}
+\end{figure}
+
+
+\section{Re-building the API}
+

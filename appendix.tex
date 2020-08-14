@@ -1,0 +1,39 @@
+\section{Reproducing the experiments}
+
+TODO: organize this part (for now everything is simply copy pasted here) and complete it\\
+
+The command used to run the scheduler is
+\begin{minted}{bash}
+	./scheduler --kubeconfig=<kubeconfig.yaml>
+	--kube-api-content-type=application/json --leader-elect=false
+	--scheduler-name=default
+\end{minted}
+\noindent Only the path to the \texttt{kubeconfig.yaml} changes to either point the the
+emulated or simulated cluster.
+
+Batkube is run with \mint{bash}| ./batkube --scheme=http --port=8001 |
+\noindent followed by the simulator options.
+
+Batsim is run with option \texttt{enable-compute-sharing}: for a reason
+unknown, Kubernetes scheduler tends to over allocate resources in some cases
+(especially with smaller jobs) which makes Batsim crash if this option is
+disabled. We must allow compute sharing even when it is not expected in order
+to capture the scheduler behavior as precisely as possible.\\
+
+Those are the Batkube options that did not vary during the experiments:
+\begin{itemize}
+	\item \texttt{backoff-multiplier}: 2 (default value)
+	\item \texttt{detect-scheduler-deadlock}: true. Obligatory for
+		automating experiments
+	\item \texttt{fast-forward-on-no-pending-jobs}: the scheduler is not
+		susceptible to reschedule running jobs (there is a de-scheduler
+		for that) so we might as well fast forward when there is
+		nothing to schedule.
+
+\end{itemize}
+
+The option \texttt{scheduler-crash-timeout} did vary between experiments to
+make up for odd scheduler crash detections (it was increased up to 30s).
+However, it did not have any impact on the results as we do not take into
+account simulation time in case of failure.
+
