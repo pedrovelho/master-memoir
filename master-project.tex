@@ -34,7 +34,7 @@
 
 \usepackage{subcaption}
 \captionsetup{compatibility=false}
-
+\usepackage{appendix}
 % \usetikzlibrary{arrows,shapes,positioning,shadows,trees}
 % \makesavenoteenv{tabular}
 % \makesavenoteenv{table}
@@ -739,24 +739,6 @@ because supporting another scheduler would mean more development time which we
 could not afford. Still, it is sufficient to experiment with the simulator and
 verify the scheduler's behavior in the simulation.
 
-% The command used to run the scheduler is
-% \begin{minted}{bash}
-% 	./scheduler --kubeconfig=<kubeconfig.yaml>
-% 	--kube-api-content-type=application/json --leader-elect=false
-% 	--scheduler-name=default
-% \end{minted}
-% \noindent Only the path to the \texttt{kubeconfig.yaml} changes to either point the the
-% emulated or simulated cluster.
-
-% Batkube is run with \mint{bash}| ./batkube --scheme=http --port=8001 |
-% \noindent followed by the simulator options.
-% 
-% Batsim is run with option \texttt{enable-compute-sharing}: for a reason
-% unknown, Kubernetes scheduler tends to over allocate resources in some cases
-% (especially with smaller jobs) which makes Batsim crash if this option is
-% disabled. We must allow compute sharing even when it is not expected in order
-% to capture the scheduler behavior as precisely as possible.
-
 \subsection{Real experimental testbed}
 
 In order to validate the simulator results we then need to compare it against
@@ -775,41 +757,29 @@ Figure \ref{fig:emulated-expe} illustrates how this is done. First, we create a
 k3s cluster run using docker-compose -- \texttt{start-cluster.sh} is a helper
 script made for this. Then, a Go script which takes a workload as an input
 submits the jobs at the right time and writes the ouputs to csv files -- which
-have the same format as Batsim's csv output files.
+have the same format as Batsim's csv output files. We run each workloads 10
+times in order to get statistically meaningful results, except for the
+realistic workload which we only run one time because it is already 10 hours
+long.
 
-TODO: scripts to create a cluster with k3s. 
+The emulated cluster is limited in terms of variety and capacity. First,
+\texttt{start-cluster.sh} only allows the nodes to have the same amount of
+available cpu, memory or storage because there was no need for any complex
+system for our experiences. Secondly, the maximum amount of cpu, memory or
+storage we can make available for each node is capped to the host system
+capacities. For example, if the host system possesses 8 cpu cores, the nodes
+will have a maximum of 8 cpu available. This will have implications when trying
+to run workloads recorded on real systems: either we get to find a workload
+that complies with the host system capacity (which is very unlikely), or we
+adapt the workload so the jobs requirements do not exceed the host
+capabilities (see section \ref{sec:studied-workloads}).
 
-For each workload, run it 10 times for the first two, only a few times for the
-last one.
-
-TODO: mention the limit on the amount of cpu and memory as well as the large
-experience time. Mention the fact that jobs can't be scheduled across nodes:
-if we want to mimic a batch scheduling behavior we need to emulate one big node
-containing all the cpu we need (which is not possible), or use adapted workloads.
-
-NOTE: show the graphs? (Gantt charts and aggregated metrics for each wl: makespan, mean waiting time etc. Show the average and standard deviation for these metrics)
 \subsection{Simulated testbed}
 
-TODO: Those are the options batkube is run with throughout the experiments.
-\begin{itemize}
-	\item \texttt{base-simulation-timestep}: 100ms. Starting value for the
-		simulation timestep, which then increases with the implemented
-		backoff policy. --> Can be the object of an experiment, not
-		sure if it impacts the simulation.
-	\item \texttt{backoff-multiplier}: 2. Same as last one, not sure if it
-		has an impact really.
-	\item \texttt{detect-scheduler-deadlock}: true. Obligatory for
-		automating experiments
-	\item \texttt{scheduler-crash-timeout}: 5s (more than enough)
-	\item \texttt{fast-forward-on-no-pending-jobs}: the scheduler is not
-		susceptible to reschedule running jobs (there is a de-scheduler
-		for that) so we might as well fast forward when there is
-		nothing to schedule.
-\end{itemize}
 
 The other parameters are precised for each experiment.
 
-\subsection{Studied workloads}
+\subsection{Studied workloads} \label{sec:studied-workloads}
 
 We consider three workloads, representing three different situations. The first
 two are simplistic and very controlled, and the last one depicts a more
@@ -908,25 +878,19 @@ well as the simulation time. The other parameters are: \texttt{timeout=20ms};
 acceptable simulation results but they allow us to run prompt simulations, as
 accuracy do not concern us here.\\
 
-\begin{figure}[h]
-	\begin{subfigure}{.5\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{imgs/min-delay_spaced_200_delay170_crash_old.png}
-		\caption{Not enough minimal delay lead the outdated scheduler to crash.}
-		\label{fig:min-delay_crash}
-	\end{subfigure}
-	\begin{subfigure}{.5\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{imgs/min-delay_duration.png}
-		\caption{There is a direct correlation between minimal delay and simulation time as soon as it exceeds the timeout value}
-		\label{fig:min-delay_duration}
-	\end{subfigure}
-	\caption{Effect of minimum delay on the simulation. Some outliers were
-	removed.}
-	\label{fig:min-delay_old}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{imgs/min-delay_spaced_200_delay170_crash_old.png}
+	\caption{Crash rate of the simulations against minimum delay.}
+	\label{fig:min-delay_crash}
 \end{figure}
 
-TODO: re-run the realistic simulation for min delay
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{imgs/min-delay_duration.png}
+	\caption{Mean duration of the simulations (in case of success) against minimum delay. Error bars show confidence intervals at 95\%.}
+	\label{fig:min-delay_duration}
+\end{figure}
 
 As we can see on figure \ref{fig:min-delay_crash}, the crash rate decreases
 dramatically as soon as the minimum delay reaches a certain threshold, which
@@ -944,6 +908,7 @@ direct correlation between \textit{minimum delay} increase and simulation time
 increase. It follows that the best choice for the \textit{minimum delay} now is
 zero, and we will use this value for the rest of the experiments.
 
+
 \subsection{Timeout}
 
 This value is the maximum amount of time we leave for the scheduler to react. A
@@ -958,14 +923,14 @@ time to process a message, any time following is spent idling. We want to
 measure which \texttt{timeout value} is just enough for the scheduler to be
 able to make a response without spending any time idling.
 
-We run each worklaod with a \texttt{timeout value} ranging from 0ms to 100ms,
+We run each workload with a \texttt{timeout value} ranging from 0ms to 100ms,
 with a step of 1ms. Each time we measure the duration of the simulation as well
 as the makespan and the mean waiting time. The latter two will enable us to
 compare the results against the emulated results in order to estimate the
 accuracy of the simulation. The other parameters are set to:
 \texttt{min-delay=0ms}, \texttt{max-simulation-timestep=20s}
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\begin{subfigure}{.5\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{imgs/timeout_duration.png}
@@ -1009,9 +974,9 @@ this value at the limit where the results start to stabilize.  In this case,
 according to figure \ref{fig:timeout_makespan}, \texttt{timeout-value=50ms}
 seems like a decent compromise between accuracy and scalability.
 
-With such a simple workload and platform combination, the decision makign time
-is very low (it is but a matter of milliseconds), but we can imagine it may
-reach much higher values given a bigger platform and more complicated workload.
+With such simple workloads and platforms, the decision making time is very low
+(it is but a matter of milliseconds), but we can imagine it may reach much
+higher values given a bigger platform and more complicated workload.
 
 \subsection{Maximum simulation time step}
 
@@ -1073,6 +1038,49 @@ PROTOCOL: go all out on large workloads and platform
 
 TODO: on small workloads the scheduler tends to over allocate when it is not supposed
 to: same behavior in emulation and simulation
+
+
+\appendix
+\appendixpage
+\addappheadtotoc
+\section{Reproducing the experiments}
+
+TODO: organize this part (for now everything is simply copy pasted here) and complete it\\
+
+The command used to run the scheduler is
+\begin{minted}{bash}
+	./scheduler --kubeconfig=<kubeconfig.yaml>
+	--kube-api-content-type=application/json --leader-elect=false
+	--scheduler-name=default
+\end{minted}
+\noindent Only the path to the \texttt{kubeconfig.yaml} changes to either point the the
+emulated or simulated cluster.
+
+Batkube is run with \mint{bash}| ./batkube --scheme=http --port=8001 |
+\noindent followed by the simulator options.
+
+Batsim is run with option \texttt{enable-compute-sharing}: for a reason
+unknown, Kubernetes scheduler tends to over allocate resources in some cases
+(especially with smaller jobs) which makes Batsim crash if this option is
+disabled. We must allow compute sharing even when it is not expected in order
+to capture the scheduler behavior as precisely as possible.\\
+
+Those are the Batkube options that did not vary during the experiments:
+\begin{itemize}
+	\item \texttt{backoff-multiplier}: 2 (default value)
+	\item \texttt{detect-scheduler-deadlock}: true. Obligatory for
+		automating experiments
+	\item \texttt{fast-forward-on-no-pending-jobs}: the scheduler is not
+		susceptible to reschedule running jobs (there is a de-scheduler
+		for that) so we might as well fast forward when there is
+		nothing to schedule.
+
+\end{itemize}
+
+The option \texttt{scheduler-crash-timeout} did vary between experiments to
+make up for odd scheduler crash detections (it was increased up to 30s).
+However, it did not have any impact on the results as we do not take into
+account simulation time in case of failure.
 
 \backmatter
 \printbibliography
