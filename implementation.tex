@@ -242,24 +242,107 @@ cluster to -- almost -- any Kubernetes scheduler.
 %the very well established HPC ecosystem, but that time may come soon as
 %containers are becoming more and more integrated in modern infrastructures.
 
-\section{Re-building the API}
 
-TODO: Explain hy this is the best approach we could find and how we did it.
+\section{General architecture of Batkube and its integration with Kubernetes and Batsim}
 
-\section{Translation and resource management}
+\subsection{Integration with Kubernetes}
 
-TODO: maybe move this section under the last section. This is a minor problem
-and was really not too dificult in our case. Maybe explain why we did not
-translate batsim jobs to kubernetes jobs but rather directly to pods.
+In order to be able to plug Kubernetes schedulers into Batsim we need to
+position ourselves between the scheduler and the cluster. There are several
+options here. First we present the options we considered but did not choose,
+and then we explain how we wrote a custom REST API which acts as a Kubernetes
+cluster to the scheduler, and as an event based scheduler to Batsim.
 
-Explain how dirty the resource management system is (non thread safe, stored in
-memory, little hacks for the resource version) and briefly write on how it
-induces problems on the scheduling (overlap of jobs on the same resource where
-there is no room for them) (we talk about this in the evaluation part).
+TODO: Redact the following sections
+
+\subsubsection{In between the api and the kubelets}
+
+High level option: we leave resource management to the API and position
+ourselves as the kubelets. Downside: it is not documented, as this side of
+Kubernetes is not supposed to be used or tampered with by the general user (or
+even power user). We would need to reverse engineer the communications between
+the kubelets and the API. Also there is a good chance the API and the kubelets
+are tightly coupled together, making it even more difficult to fool the API.
+
+TODO: little illustration of this option.
+
+An equivalent option is a partial re implementation of the api. We dig deep
+into the code of the API to redirect only the calls to know the resource
+states. It has the same benefits as the last option but requires going even
+deeper into kube code. Not viable.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/partial-reimplem.png}
+	\caption{Partial re-implementation of the API.}
+	\label{fig:partial_reimp}
+\end{figure}
+
+\subsubsection{Custom client-go}
+
+We completely ditch the API by altering the go client. We have to manage the
+resources ourselves and also dig into client-go code. This solution is
+equivalent to re building the api entirely, with the added challenge of going
+through the client-go code.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics{imgs/custom-go-client.png}
+	\caption{Custom Go client to redirect scheduler communications to Batsim}
+	\label{fig:custom-go-client}
+\end{figure}
+
+\subsubsection{Custom API}
+
+This is the option we opted for. We have tools to generate the api
+automatically, we do not have to dig through any code. We still have to handle
+the resources ourselves, but it actually is not too big a deal.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/custom-restapi.png}
+	\caption{Custom REST API in between the scheduler and Batsim.}
+	\label{fig:custom-api}
+\end{figure}
+
+\subsection{Architecture of Batkube}
+
+TODO: explanatory text for batkube's architecture.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/batkube-architecture-3-synchro.png}
+	\caption{Architecture of Batkube}
+	\label{fig:batkube-architecture}
+\end{figure}
+
+\section{Building the API}
+
+TODO
+
+The tools we used (go-swagger, kuberenets open api spec) and why we chose
+these tools: to automate the technical side of the project, to not have to
+write boiler plate code.
+
+Downside: go-swagger takes a bit of getting used to
+and we can't make any changes to the server itself, although we don't really
+need to.  
+
+Translation of resources (and management of resources).
+
+Limits: explain how dirty the resource management system is (non
+thread safe, stored in memory, little hacks for the resource version) and
+briefly write on how it induces problems for the scheduler (over allocating
+resources) (we talk about this in the evaluation part).
 
 \section{Time interception}
 
+TODO: explain why we need to synchronize time between the scheduler and Batsim.
+
+\subsection{Redirection of time requests to Batkube}
+
 TODO: explain how channels work briefly, to understand the algorithms.
+Explanatory text for the algorithms. Try and make the algorithms as clear as possible.
 
 \SetKwInput{KwInput}{Input}
 \SetKwInput{KwOutput}{Output}
@@ -308,9 +391,17 @@ return now\;
 \label{alg:now}
 \end{algorithm}
 
+\subsection{Patching schedulers}
+
+TODO: Explain the AST approach and how it is not a plain sed. (conflict in the
+resources used, we have to replace all calls to time's \textbf{functions} and
+leave the \textbf{objects} as they are).
 
 \section{Time synchronization}
 
+TODO: explanatory text on this diagram. Explain the different parameters:
+timeout, max \& base timestep \& backoff multiplier, min delay, scheduler crash
+detection, fast forward on no pending jobs.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{imgs/lignes_de_temps.png}
@@ -318,6 +409,3 @@ return now\;
 	into account both machine time and simulation time.}
 	\label{fig:time_sync}
 \end{figure}
-
-
-
