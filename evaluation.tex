@@ -1,4 +1,3 @@
-
 \chapter{Evaluation and discussion}
 
 Because SimGrid has already been thoroughly tested and validated, we do not
@@ -247,6 +246,8 @@ TODO: redo the simulations for the realistic wl, removing some values of
 timeout and adding repetition to show aggregated metrics. (non aggregated ones
 are too dispersed)
 
+TODO: \ref{fig:timeout_duration} does not have the same scale on the x axis as the others.
+
 TODO: Gantt charts to show the gaps.
 
 As we expected, a \textit{timeout value} too low results in the scheduler
@@ -314,7 +315,14 @@ Study on two metrics : makespan and mean\_waiting\_time. Show the box plots for
 simulated and emulated metrics.
 
 Discussion:
+
 Container pull and startup time not accounted for in the simulation.
+
+The scheduler over allocates when it should not, reducing makespan.
+
+The scheduler sometimes does not seem to get update on nodes resource state and
+realizes late that some nodes are free (is this still the case? need to plot
+gantt charts)
 
 \section{Scalability experiments and scheduler limits}
 
@@ -324,8 +332,5 @@ run large workloads in a minimal amount of time.
 
 PROTOCOL: go all out on large workloads and platform
 
-TODO: on small workloads the scheduler tends to over allocate when it is not supposed
-to: same behavior in emulation and simulation
-
-
-\newpage
+TODO: can't really run simulations that are too long because the scheduler
+fills the memory pretty fast.

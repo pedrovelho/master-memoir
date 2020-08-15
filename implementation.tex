@@ -131,23 +131,22 @@ During our experimentations with Batkube we interest ourselves in two metrics
 that can be computed from this output:
 \begin{itemize}
 	\item The \textit{makespan}, which is the total length of the
-		simulation, or the time \textit{span} that was required to
-		\textit{make} all the jobs. It is defined as the timestamp at
-		which the last job finished executing, minus the origin (in
-		this case, zero).
-	\item The \textit{mean\_waiting\_time}, which is the mean amount of
-		time the jobs spent waiting for a scheduling decision. The
-		waiting time is defined by the duration between the submission
-		time and the starting time (that is equivalent to the
-		scheduling time here).
+		simulation. It is defined as the timestamp at which the last
+		job finishes executing, minus the origin (in this case, zero).
+	\item The \textit{mean\_waiting\_time}, which is the mean time the jobs
+		spent waiting for a scheduling decision. The waiting time is
+		defined by the duration between the submission time and the
+		starting time (here the starting time is equivalent to the time
+		at which the job was scheduled. We will see later that these
+		two times do not correspond in Kubernetes.)
 \end{itemize}
+
 \section{Kubernetes concepts}
 
-The basic processing unit of Kubernetes is called a \textbf{pod} which is
-composed of one or several containers and volumes\footnote{A volume is some
-	storage space on the host machine that can be linked to containers, so
-	they can read persistent information or store data in the long term}.
-In the cloud native context a pod most often hosts a service or micro-service.
+Kubernetes is a large ecosystem that we can not possibly describe or study in
+its entirety in the short amount of time that was allocated to this project.
+Instead, let us focus on some details about scheduling in Kubernetes and how it
+differs from the Batsim approach.
 
 \begin{figure}[h]
 	\centering
@@ -156,21 +155,38 @@ In the cloud native context a pod most often hosts a service or micro-service.
 	\label{fig:node-overview}
 \end{figure}
 
-Pods are bundled together in \textbf{nodes} (figure \ref{fig:node-overview})
-which are either physical or virtual machines. They represent another barrier
-to pass through to access the outside world which can be useful to add layers
-of security or facilitate communication between pods. Nodes take the idea of
-containerisation further by encapsulating the already encapsulated services.
-Each node runs at least one pod and also one \textbf{kubelet} which is a
-process responsible for communicating with the rest of Kubernetes (or more
-precisely, with the master node which in turns communicates with the api
-server). A set of nodes is called a \textbf{cluster}. Each Kubernetes instance
-is responsible for running a cluster.
+The basic processing unit of Kubernetes is called a \textbf{pod} which is
+composed of one or several containers and volumes\footnote{Because of their
+	transient nature, containers can not store data on their own. A volume
+	is some storage space on the host machine that can be linked to
+containers, in order for them to read and write persistent information.}. The
+type of application they contain vary depending on the context: in a web
+platform context a pod most often hosts a service or micro-service that must be
+available at all times, in opposition to a batch processing context where it
+runs an application that is to be executed in a finite amount of time.  Pods
+are bundled together in \textbf{nodes} (figure \ref{fig:node-overview}) which
+are either physical or virtual machines. They represent another barrier to pass
+through to access the outside world which bundles pods under the same network
+to facilitate communication between them, and enables the use of proxies to
+access the underlying services. A set of nodes is called a \textbf{cluster}
+which is the highest abstraction layer in Kubernetes.
 
-Kubernetes revolves its API server which is its central component (figure
-\ref{fig:kube-components}). The majority of operations between components go
-through this REST API like user interactions through kubectl or scheduling
-operations.
+Nodes take the idea of containerisation further than plain containers by
+encapsulating the already encapsulated services.  Each node runs at least one
+pod, the \textbf{kubelet}, which is a process responsible for communicating
+with the rest of Kubernetes. More precisely, the kubelet communicates with the
+\textbf{kube-api-server} which is responsible for the whole cluster.  This API
+server, as well as the other components of the \textbf{Control Plane} (figure
+\ref{fig:kube-components}), can be run on any machine but for simplicity they
+are set up on the same machine at start up. This machine is often called the
+\textbf{master} node and typically does not run any other container.
+
+As stated before Kubernetes revolves around its API server which is its central
+component. All operations between components go through this REST API. These
+operations take various forms like user interactions through the commande line
+interface \textbf{kubectl}, scheduling operations or management of cluster data
+on \textbf{etcd}. We then decided to re-build the API in order to simulate any
+cluster to -- almost -- any Kubernetes scheduler.
 
 \begin{figure}[h]
 	\centering
@@ -226,11 +242,20 @@ operations.
 %the very well established HPC ecosystem, but that time may come soon as
 %containers are becoming more and more integrated in modern infrastructures.
 
+\section{Re-building the API}
 
+TODO: Explain hy this is the best approach we could find and how we did it.
 
-\section{Translation}
+\section{Translation and resource management}
 
-TODO
+TODO: maybe move this section under the last section. This is a minor problem
+and was really not too dificult in our case. Maybe explain why we did not
+translate batsim jobs to kubernetes jobs but rather directly to pods.
+
+Explain how dirty the resource management system is (non thread safe, stored in
+memory, little hacks for the resource version) and briefly write on how it
+induces problems on the scheduling (overlap of jobs on the same resource where
+there is no room for them) (we talk about this in the evaluation part).
 
 \section{Time interception}
 
@@ -295,5 +320,4 @@ return now\;
 \end{figure}
 
 
-\section{Re-building the API}
 
