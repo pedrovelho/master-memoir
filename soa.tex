@@ -1,63 +1,13 @@
-\chapter{State of the art}
+\chapter{Background and related work}
 
-This section is organized as follow. First we put Kubernetes in context, in
-light of the advances made in web application development. As we will see,
-despite these adavances in the automation of resource management many
-fundamental questions remain that can only be anwsered by extensive studies on
-computer systems. One such question is the problem of scheduling tasks on
-compute resources, which we briefly present. We end this section by presenting
-the concepts of Batsim which is a distributed system simulator especially well
-suited for studies on scheduling alrogithms.
-
-\section{Cloud Computing}
-
-In the early stages of application development, organizations used to run their
-services on physical servers. With this direct approach came many challenges
-that needed to be coped with manually like resources allocation,
-maintainability or scalability. In an attempt to automate this process
-developers started using virtual machines which enabled them to run their
-services regardless of physical infrastructure while having a better control
-over resource allocation.  This led to the concept of containers which takes
-the idea of encapsulated applications further than plain virtual machines.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{./imgs/container_evolution.png}
-	\captionsource{Evolution of application deployment.}{https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/}
-	\label{fig:container-evolution}
-\end{figure}
-
-Containers can be thought of as lightweight virtual machines. Unlike the
-latter, containers share the same kernel with the host machine but still allow
-for a very controlled environment to run applications. There are many
-benefits to this : separating the development from deployment, portability,
-easy resource allocation, breaking large services into smaller micro-services
-or support of continuous integration tools (containers greatly facilitate
-integration tests).\\
-
-The CNCF\footnote{\url{https://www.cncf.io/}} (Cloud Native Computing
-Foundation) was founded in the intent of leveraging the container technology
-for an overall better web. In a general way, we now speak of these
-containerized and modular applications as cloud native computing :
-
-\textit{``Cloud native technologies empower organizations to build and run
-	scalable applications in modern, dynamic environments such as public,
-	private, and hybrid clouds. Containers, service meshes, microservices,
-	immutable infrastructure, and declarative APIs exemplify this
-	approach.}
-
-\textit{These techniques enable loosely coupled systems that
-	are resilient, manageable, and observable.  Combined with robust
-	automation, they allow engineers to make high-impact changes frequently
-	and predictably with minimal toil.``}\footnote{\url{https://github.com/cncf/toc/blob/master/DEFINITION.md}}
-
-Kubernetes\footnote{\url{https://kubernetes.io/}} is the implementation of this
-general idea and was anounced at the same time as the CNCF. It aims at
-automating of the process of deploying, maintaining and scaling containerized
-applications. It is industry grade and is now the de-facto solution for
-container orchestration.
-
-
+%This section is organized as follow. First we put Kubernetes in context, in
+%light of the advances made in web application development. As we will see,
+%despite these adavances in the automation of resource management many
+%fundamental questions remain that can only be anwsered by extensive studies on
+%computer systems. One such question is the problem of scheduling tasks on
+%compute resources, which we briefly present. We end this section by presenting
+%the concepts of Batsim which is a distributed system simulator especially well
+%suited for studies on scheduling alrogithms.
 
 \section{Studying computer infrastructures} \label{study-computing-infra}
 
@@ -125,38 +75,45 @@ infrastructures.
 
 \subsubsection{\textit{in silico} studies, or simulation}
 
-When running simulations two primary concerns are accuracy and scalability.
-Accuracy is the measure of the bias between the simulated trace of an execution
-of an application and its trace as if it were executed on a real system (the
-lower it is, the higher the accuracy). Scalability is the ability of the
-simulator to compute simulations quickly, or run large scale experiments.\\
+Simulation allows scientists to conduct experiments or thought experiments that
+would otherwise not be possible in the real world. One can think of simulations
+of the universe, prediction models for the weather or modeling some microbiome
+in biology. Computing itself makes no exception and researcher have created
+models of computer systems in order to experiment with new scheduling policies,
+network topologies or planning for systems capacity, for example. Simulation
+dramatically reduces experimentation cost and allows for reproducibility.
+Workloads on supercomputers may span weeks or months, whereas a single standard
+laptop can simulate this same workload in a matter of seconds or hours,
+depending on the simulator. More importantly, other scientists would need
+access to the same system the experiment was run on to reproduce the experiment
+whereas a simulator supposedly brings the same output regardless of the device
+it is run on. The only caveat that remains in terms of reproducibility lies in
+the application traces used to run off-line simulations that contain critical
+data concerning the application it was generated with.
 
-Problems with simulation: often unrealeased simulators, or designed for a
-specific project, or short lived (OptorSim) -> This is why Batsim was created.
+However, even though simulators theoretically allow for effortlessly
+reproducible experiments, the way they are developed sometimes make them hardly
+usable at all. Indeed, often simulators are one shot programs made to validate
+the models of one scientific project and end up discarded once the paper is
+redacted, unusable for any other project unmaintained or plainly unreleased.
 
-Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
-Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
+TODO; finish this paragraph \& introduce SimGrid in this context
 
-list of simulators
-\begin{itemize}
-	\item SimGrid, GridSim, CloudSim, GroudSim (to cite the most important).
-	\item Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim, OverSim (peer to peer), WRENCH (workflows).
-	\item HPC simulation: off-line vs on-line
-	\item Interconnected networks Simulation: INSEE (environment for interconnected networks), SICOSYS. Aimed to be used with other tools like SIMICS to extend th ecapabilities.
-	\item Low level simulation: SIMICS, RSIM and SimOS (multiprocessor systems).
-	\item discontinued/old projects: GSSIM, Simbatch
-\end{itemize}
+\section{SimGrid}
 
-\subsubsection{Kubernetes simulation}
-
-Kubernetes simulation: k8-cluster-simulator, joySim.
-
+TODO
+To understand Batsim's paradigms and view on simulation, we first need to
+present Simgrid's paradigms. As the latter is the framework that Batsim builds
+upon, Batsim and Simgrid views on simulation cannot be distinguished.
 
 \section{The scheduling problem}
 
-In particular, this work is targeted at experimenting with scheduling in a
-distributed system driven by Kubernetes. Here we present a general definition
-of scheduling, and the challenges it tackles.
+%In particular, this work is targeted at experimenting with scheduling in a
+%distributed system driven by Kubernetes. Here we present a general definition
+%of scheduling, and the challenges it tackles.
+
+One notorious problem on the field of distributed systems is the allocation of
+queued jobs to available resources.
 
 \begin{displayquote}[][]
 	\textbf{schedule} \textit{n.} : A plan for
@@ -195,30 +152,21 @@ as possible, such as:
 \end{itemize}
 
 All these elements make scheduling a very intricate problem that is at best
-polynomial in complexity, and often NP-hard (\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}).
+polynomial in complexity, and often NP-hard
+(\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}). In order
+to better study the effect of different scheduling policies on a system a
+reasearcher team at the LIG have created Batsim which is a versatile
+distributed system simulator built on SimGrid and focused on the study of
+schedulers.
 
-\subsection{How to study this problem in particular}
-Some simulators are especially well suited for this.
-Aléa and Accasim, and Batsim, which is what we build upon.
-
-\section{Batsim concepts}
+\section{Batsim}
 
 Batsim\cite{dutot:hal-01333471} is a distributed system simulator built upon
 the SimGrid framework. Its main objective is to enable the study of RJMS
 without the need to implement a custom simulator, by providing a universal text
-based interface. In this section we first present the SimGrid framework and then we present some of the core concepts and objectives of Batsim.
+based interface. \\
 
-\subsubsection{SimGrid}
-
-To understand Batsim's paradigms and view on simulation, we first need to
-present Simgrid's paradigms. As the latter is the framework that Batsim builds
-upon, Batsim and Simgrid views on simulation cannot be distinguished.
-
-TODO
-
-\subsubsection{Batsim}
-
-Batsim is entirely deterministic so at to make the studies easily reproducible.
+It is entirely deterministic so at to make the studies easily reproducible.
 Its event-based models will provide the same results given the same inputs and
 decision process. One other way Batsim facilitates reproducibility is through
 its user-defined inputs. Unlike other HPC or grid computing simulations that
@@ -250,3 +198,84 @@ TODO: why batsim?
 Because it was developed at the lig and they want to expand its capabilities.
 It is language agnostic to very convenient to work with.
 
+\section{Kubernetes in the context of Cloud Computing}
+
+In the early stages of application development, organizations used to run their
+services on physical servers. With this direct approach came many challenges
+that needed to be coped with manually like resources allocation,
+maintainability or scalability. In an attempt to automate this process
+developers started using virtual machines which enabled them to run their
+services regardless of physical infrastructure while having a better control
+over resource allocation.  This led to the concept of containers which takes
+the idea of encapsulated applications further than plain virtual machines.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{./imgs/container_evolution.png}
+	\captionsource{Evolution of application deployment.}{https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/}
+	\label{fig:container-evolution}
+\end{figure}
+
+Containers can be thought of as lightweight virtual machines. Unlike the
+latter, containers share the same kernel with the host machine but still allow
+for a very controlled environment to run applications. There are many
+benefits to this : separating the development from deployment, portability,
+easy resource allocation, breaking large services into smaller micro-services
+or support of continuous integration tools (containers greatly facilitate
+integration tests).\\
+
+The CNCF\footnote{\url{https://www.cncf.io/}} (Cloud Native Computing
+Foundation) was founded in the intent of leveraging the container technology
+for an overall better web. In a general way, we now speak of these
+containerized and modular applications as cloud native computing :
+
+\textit{``Cloud native technologies empower organizations to build and run
+	scalable applications in modern, dynamic environments such as public,
+	private, and hybrid clouds. Containers, service meshes, microservices,
+	immutable infrastructure, and declarative APIs exemplify this
+	approach.}
+
+\textit{These techniques enable loosely coupled systems that
+	are resilient, manageable, and observable.  Combined with robust
+	automation, they allow engineers to make high-impact changes frequently
+	and predictably with minimal toil.``}\footnote{\url{https://github.com/cncf/toc/blob/master/DEFINITION.md}}
+
+Kubernetes\footnote{\url{https://kubernetes.io/}} is the implementation of this
+general idea and was anounced at the same time as the CNCF. It aims at
+automating of the process of deploying, maintaining and scaling containerized
+applications. It is industry grade and is now the de-facto solution for
+container orchestration.
+
+\section{Related work}
+
+Simulators are often intentionally very specialized. Some are aimed at specific
+domains like peer-to-peer computing simulators (\cite{p2p09-peersim},
+\cite{baumgart2009oversim}) or volunteer computing simulators
+(\cite{simBA}, \cite{kondo2007simboinc}, \cite{alonso2017combos})
+
+Problems with simulation: often unrealeased simulators, or designed for a
+specific project, or short lived (OptorSim) -> This is why Batsim was created.
+
+Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
+
+Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
+
+When running simulations two primary concerns are accuracy and scalability.
+Accuracy is the measure of the bias between the simulated trace of an execution
+of an application and its trace as if it were executed on a real system (the
+lower it is, the higher the accuracy). Scalability is the ability of the
+simulator to compute simulations quickly, or run large scale experiments.\\
+
+list of simulators
+\begin{itemize}
+	\item SimGrid, GridSim, CloudSim, GroudSim (to cite the most important).
+	\item Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim, OverSim (peer to peer), WRENCH (workflows).
+	\item HPC simulation: off-line vs on-line
+	\item Interconnected networks Simulation: INSEE (environment for interconnected networks), SICOSYS. Aimed to be used with other tools like SIMICS to extend th ecapabilities.
+	\item Low level simulation: SIMICS, RSIM and SimOS (multiprocessor systems).
+	\item discontinued/old projects: GSSIM, Simbatch
+\end{itemize}
+
+Kubernetes simulation: k8-cluster-simulator, joySim.
+
+Related to Batsim in particular: Aléa and Accasim.
