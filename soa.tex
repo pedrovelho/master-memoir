@@ -45,9 +45,9 @@ as described in\cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
 vitro} and \textit{in silico} studies, which correspond respectively to
 experiments on real testbeds, emulation and simulation.  
 
-The next parts are mostly built upon \cite{legrand2015scheduling} and
-\cite{casanova:hal-01017319} and are aimed at depicting the current landscape
-of experimentation on distributed systems.
+%The next parts are mostly built upon \cite{legrand2015scheduling} and
+%\cite{casanova:hal-01017319} and are aimed at depicting the current landscape
+%of experimentation on distributed systems.
 
 \subsubsection{\textit{in vivo} and \textit{in vitro} studies}
 
@@ -93,18 +93,30 @@ data concerning the application it was generated with.
 
 However, even though simulators theoretically allow for effortlessly
 reproducible experiments, the way they are developed sometimes make them hardly
-usable at all. Indeed, often simulators are one shot programs made to validate
-the models of one scientific project and end up discarded once the paper is
-redacted, unusable for any other project unmaintained or plainly unreleased.
+usable. Indeed, lots of simulators are only intended to be used only by their
+developers, in order to validate the results of one particular work or paper.
+These simulators are generally unreleased, and when they are, they end up
+unmaintained. As a consequence, the experiences they served on are \textit{in
+fine} just as difficult to reproduce as the experiences conducted on real
+systems.
+Another issue that this induces is that simulators are specialized to tackle
+one specific problem, and end up being built upon over-fitted models to
+validate this problem. These simulators cannot make sense in any other context
+and therefore can not be re-used for any other project.
 
-TODO; finish this paragraph \& introduce SimGrid in this context
+There is a common belief that specialization is necessary to obtain the most
+accurate results as possible on a given problem.
+SimGrid\cite{casanova:hal-01017319} however is a framework for simulation that
+builds on the idea that versatility serves accuracy, while ensuring high
+scalability.
 
 \section{SimGrid}
 
-TODO
-To understand Batsim's paradigms and view on simulation, we first need to
-present Simgrid's paradigms. As the latter is the framework that Batsim builds
-upon, Batsim and Simgrid views on simulation cannot be distinguished.
+TODO: Present SimGrid models briefly.
+How can it model a Kubernetes clutser? -> a kube cluster is nothing but a
+distributed system with potentially a major network compomeent to be accounted
+for between nodes. SimGrid ca do all this, thanks to its capable network
+models.
 
 \section{The scheduling problem}
 
@@ -168,11 +180,11 @@ based interface. \\
 
 It is entirely deterministic so at to make the studies easily reproducible.
 Its event-based models will provide the same results given the same inputs and
-decision process. One other way Batsim facilitates reproducibility is through
-its user-defined inputs. Unlike other HPC or grid computing simulations that
-run on existing application traces, Batsim takes a user defined workload as an
-input. As a consequence, the user has no concerns such as intellectual property
-on application traces and may provide all his experiments materials and
+decision process. Batsim also facilitates reproducibility through its
+user-defined inputs. Unlike other HPC or grid computing simulations that run on
+existing application traces, Batsim takes a user defined workload as an input.
+As a consequence, the user has no concerns such as intellectual property on
+application traces and may provide all his experiments materials and
 environment.  Another advantage of this system is that the user can adapt the
 workload depending on its needs, to achieve different levels of realism.
 
@@ -189,14 +201,11 @@ resources) will have either the roles of \textbf{compute\_node} or
 \textbf{storage}. Still, the user may study any topology he wishes using
 SimGrid models.
 
-Thanks to its own message interface based on Unix sockets, Batsim is language
-agnostic which means that any RJMS can be plugged into it as long as it
-implements the interface.
-
-TODO: why batsim?
-
-Because it was developed at the lig and they want to expand its capabilities.
-It is language agnostic to very convenient to work with.
+Thanks to its own message interface Batsim is language agnostic which means
+that any RJMS can be plugged into it as long as it implements the interface.
+This property allows us to plug any scheduler we wish to Batsim, including
+Kubernetes schedulers, which allowed us to run simulations of Kubernetes
+clusters.
 
 \section{Kubernetes in the context of Cloud Computing}
 
@@ -248,10 +257,47 @@ container orchestration.
 
 \section{Related work}
 
+Not many projects exist on Kubernetes simulation or have been disclosed. We
+were able to find only two projects that propose simulations of Kubernetes
+clusters.
+
+JoySim \cite{joysim} is a fully fledged Kubernetes simulator. Simulations are
+based on synthetic events which means there is no need for any advanced models
+to compute resource jobs resource usage and inter dependencies: everything is
+pre-written. The strength of this simulator is that the nodes are very light
+weight enabling for scalable simulations. JoySim is aimed at studying
+scheduling performances and quality in complex scenarios by generating metrics
+such as cpu and disk usage and scheduling time. Although, to the best of our
+knowledge, it is not suited for batch scheduling and tackles more classic
+issues for Kubernetes such as services availability and resource utilization.
+Unfortunately, while an open source released in planned, this piece of software
+is currently closed source.
+
+The other project is an end of studies project like this one.
+k8s-cluster-simulator\cite{k8s-cluster-simulator} is an open source cluster for
+evaluating schedulers. Its models are somewhat basic: Pods are submitted with
+certain resource requirements, for a certain amount of time which makes it
+event based like JoySim. One can provide any scheduler implementation they want
+as long as they do so through their Go interface, reducing the amount of
+schedulers that can be tested to Go implementations only (or provide an
+adaptive layer to their scheduler to support the simulator).\\
+
+TODO: Other simulators for studying schedulers: Alea (Gridsim), Accasim.
+
+TODO: Simulation in HPC (off line vs on line) and how this approaches are different from our fulyl specified workloads.
+
+TODO: It is interesting to look at the other projects based on SimGrid
+(SimBOINC and SimGrid-BOINC, WRENCH). They prove the versatility of SimGrid: it
+make sno doubt that SimGrid can accurately simulate any Kubernetes cluster.
+
+NOTES
+
 Simulators are often intentionally very specialized. Some are aimed at specific
-domains like peer-to-peer computing simulators (\cite{p2p09-peersim},
-\cite{baumgart2009oversim}) or volunteer computing simulators
-(\cite{simBA}, \cite{kondo2007simboinc}, \cite{alonso2017combos})
+domains like peer-to-peer computing simulators like PeerSim
+\cite{p2p09-peersim} and OverSim \cite{baumgart2009oversim}, or volunteer
+computing simulators (\cite{simBA}, \cite{alonso2017combos})
+
+Simulators based on simgrid: SimBOINC \cite{kondo2007simboinc}
 
 Problems with simulation: often unrealeased simulators, or designed for a
 specific project, or short lived (OptorSim) -> This is why Batsim was created.
@@ -259,12 +305,6 @@ specific project, or short lived (OptorSim) -> This is why Batsim was created.
 Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
 
 Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
-
-When running simulations two primary concerns are accuracy and scalability.
-Accuracy is the measure of the bias between the simulated trace of an execution
-of an application and its trace as if it were executed on a real system (the
-lower it is, the higher the accuracy). Scalability is the ability of the
-simulator to compute simulations quickly, or run large scale experiments.\\
 
 list of simulators
 \begin{itemize}
