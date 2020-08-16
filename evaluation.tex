@@ -274,13 +274,37 @@ in time. This may result in skipping scheduler decisions that could have been
 made in the mean time, delaying them to when Batsim decides to wake up. We
 expect increasing this value to have an analogous effect to the timeout value:
 higher simulation speed, but also decreased accuracy due to gaps (delays) in
-the decision process.\\
+the decision process.
 
-PROTOCOL: same as timeout. max timestep ranges from 1s to 100s with a
-logarithmic scale (1s, 2s, \ldots, 9s, 10s, 20s, \ldots, 90s, 100s) Other
-parameters: timeout=20ms; min-delay=0ms.
+To experiment with the maximum time step effect on the results we obtain, we
+run each workload with different values of \texttt{max-simulation-timestep}
+following a logarithmic scale. The other parameters are fixed to
+\texttt{min-delay=0s}, \texttt{timeout=50ms}. Also, the
+\texttt{base-simulation-timestep} was lowered to 10ms in order to test lower
+values of the maximum timestep (compared to the previous 100ms).
 
-TODO: basically the same graphs as in the timeout
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.5]{imgs/max-timestep_duration.png}
+	\caption{Effect of maximum timestep on simulation time}
+	\label{fig:max_timestep_duration}
+\end{figure}
+
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.5]{imgs/max-timestep_mwt.png}
+	\caption{Effect of maximum timestep on mean waiting time}
+	\label{fig:max_timestep_mwt}
+\end{figure}
+
+As expected, the simulation time decreases drastically when the maximum
+timestep increases. Still, this value reaches a minimum eventhough the maximum
+timestep keeps increasing. This happens because Batsim events are only so far
+appart in the simulation, and Batsim will always wake up before the maximum
+timestep is reached.
+
+TODO: redo the experiment for the spaced wl and redo the graph for makespan (do
+not put all three wl on the same graph because the scale is so different).
 
 \subsection{Parameters inter dependency}
 
