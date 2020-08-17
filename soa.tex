@@ -11,9 +11,9 @@
 
 \section{Studying computer infrastructures} \label{study-computing-infra}
 
-Eventhough this paradigm enabled developing new applications with ease, many
-questions remain: what type of infrastructure would be best suited for my
-application? Would my application benefit from more cpu cores? How would
+Even though the containers paradigm enabled developing new applications with
+ease, many questions remain: what type of infrastructure would be best suited
+for my application? Would my application benefit from more cpu cores? How would
 different scheduling policies affect my application? Would my batch jobs
 compute faster with a different topology? To answer these interrogations one
 must conduct studies to experiment with different configurations.\\
@@ -22,7 +22,7 @@ Studying an entire computing infrastructure is not an easy feat, first because
 every infrastructure is unique. There are as many types of infrastructure as
 there are use cases, each having a different vision on efficiency and what
 metrics are critical to the system: latency, bandwith, resource availability,
-computational power or cost effectiveness (the latter boils down to energy
+computational power or cost effectiveness (which boils down to energy
 efficiency). This variety of purposes translates to the type of hardware used
 and the topology of the infrastructure. Some systems are centralized like HPC
 and Data Centers, others are meant to be used from a distance like Cloud
@@ -40,10 +40,10 @@ the behavior of those systems under varying conditions. Also, interactions
 between the various components of those systems may lead to unexpected
 behavior\cite{10.1007/978-3-319-09873-9_12} that can hardly be predicted.
 
-In order to extensively experiment on a given system, there are 3 options left
-as described in\cite{legrand2015scheduling}: \textit{in vivo}, \textit{in
-vitro} and \textit{in silico} studies, which correspond respectively to
-experiments on real testbeds, emulation and simulation.  
+Scientist still have tools to study those systems. More precisely, there are 3
+options as described in\cite{legrand2015scheduling}: \textit{in vivo},
+\textit{in vitro} and \textit{in silico} studies, which correspond respectively
+to experiments on real testbeds, emulation and simulation.  
 
 %The next parts are mostly built upon \cite{legrand2015scheduling} and
 %\cite{casanova:hal-01017319} and are aimed at depicting the current landscape
@@ -57,24 +57,29 @@ produce the most accurate results, however it poses major scalability and
 reproducibility issues.
 
 Experiments conducted on real systems may prove difficult to reproduce, as one
-must have access to the same system to reiterate it. Even then, changes to the
-infrastructure hardware and software environment diminish the chances of
-getting the same conditions. One solution to this problem is running \textit{in
-vitro} studies, that is to say run an emulation of the system (virtual machines
-or a network emulation for example). This resolves the issue of
-reproducibility, however the matter of the cost in energy and time remains (if
-anything, emulation aggravates these costs).
+must have access to the same system in the first place. Event in the
+eventuality where access to the exact same system would be possible, changes in
+the infrastructure and software environment over time would diminish even more
+the chances of recreating a sane environment. Moreover, studying new algorithms
+imply testing them under a wide range of systems (under different system size,
+topology, and hardware) which is impossible to do with a real computer as we
+can not change the hardware of those infrastructures.
 
-This cost is exacerbated by the many iterations of a same experiment one must
-conduct in order to get statistically significant results. Workloads submitted
-by real users can last from hours to months and have substantial costs in
-energy: the means required to run them are too great and research to optimize
-or simply study these systems can not justify this waste of resources. For all
-these reasons scientists resort to simulation to study these computing
-infrastructures.
+One solution to these issues is running \textit{in vitro} studies, that is to
+say run an emulation of the system. This resolves the issue of reproducibility,
+however the matter of the cost in energy and time remains. If anything,
+emulation aggravates these costs: emulation adds a consequent overhead to the
+system and running the same workloads in reasonable time requires access to a
+system of (at least) equivalent size.  This cost is exacerbated by the many
+iterations of a same experiment one must conduct in order to get statistically
+significant results. Workloads submitted by real users can last from hours to
+months and have substantial costs in energy: the means required to run them are
+too great and research to optimize or simply study these systems can not
+justify this waste of resources.
 
 \subsubsection{\textit{in silico} studies, or simulation}
 
+The answer to these scalability considerations is simulated infrastructures.
 Simulation allows scientists to conduct experiments or thought experiments that
 would otherwise not be possible in the real world. One can think of simulations
 of the universe, prediction models for the weather or modeling some microbiome
@@ -290,24 +295,39 @@ tested to Go implementations only -- note that it is always possible to
 implement an adaptive layer to support any other scheduler, implying more
 development to support the simulator.\\
 
-TODO: Other simulators for studying schedulers: Alea (Gridsim), Accasim.
+Two simulators are very close to Batsim in terms of capabilities and
+objectives, that is to say study on scheduling policies.
 
-Alea2: ready to use, standard implementations of scheduling algorithms and real
-time visualization of the simulation. Unlike batsim, can't plug any scheduler
-to it. It is based on GridSim which is cross platform because it is written in
-Java. Modular implementation like GridSim. Discrete events. Alea2 is easely customizable and extensible thanks to its object oriented paradigm which makes modularity a core feature of the simulator. It takes SWF or GWF as inputs.
+Alea2\cite{alea2} is a grid computer system simulator based on GridSim. Like
+Batsim, its \textit{ready-to-use} philosophy make it a fantastic simulator when
+one desires to experiment with different scheduling policies with little set up
+overhead. Because it is based on GridSim, it is all written in Java and is thus
+cross platform. Alea2 strength lies in its modularity: its object oriented
+paradigms make it very easily extensible and customizable. Unlike Batsim it
+does not offer a decoupling of the simulator and the decision process and
+therefore the user will have to rely on the implemented scheduling algorithms,
+although these algorithms cover the most standardly used scheduling policies.
+The user will have to implement other policies he would like to test out. The
+simulator handles inputs in the form of \textit{Standard Workloads Format
+(SWF)} or \textit{Grid Workloads Format (GWF)}. Batsim proposes a script to
+process SWF files into its own input format but does not handle them directly.
 
-Accasim: Discrete events as well. Jobs are loaded incrementally in opposition
-to Batsim which drastically improves memory onsumption with large workloads.
-Job duration estimations are supplied as job attributes. Like Alea, scheduling
-policies can be customized. Additional data about the current resources status (pwoer consumption, temperature or resource failures) can be provided to support more advanced dispatchers. There is an interface allowing the user to pass back results to the event manager in order to run such simulations.
+Accasim\cite{10.1007/978-3-319-73353-1_12} is a simulator for studying
+\textit{Workload Management Systems (WMS)} in HPC infrastructure. It is similar
+to Alea in the sense that the decision process is not decoupled from the
+simulator and standard scheduling algorithms are implemented in Accasim, so
+that the user does not need to set up extra software in order to start
+experimenting. In addition, the user may provide extra data about the system
+status (power consumption, temperature or resource failures) in order to
+support advanced scheduling algorithms.  These take the form of additional
+events transmitted to the simulator. Accasim loads jobs incrementally and
+cleans them upon completion which reduces its memory usage compared to Batsim,
+which loads everything in memory at the start of the simulation.
 
-ScSF:
-
-According to Accasim paper Batsim is outperformed by both Accasim and Alea
-because of its high memory usage that hinders the simulation speed. But both
-lack the decoupling between the resources and the scheduler that we need in
-order to plug kube schedulers to it.
+Both simulator outperform Batsim (\cite{10.1007/978-3-319-73353-1_12}),
+especially with large workloads because of its high memory usage that hinders
+the simulation speed.  However, both lack the decoupling between the resources
+and the scheduler that we need in order to plug Kubernetes schedulers onto it.
 
 NOTES
 
