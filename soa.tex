@@ -111,25 +111,33 @@ and therefore can not be re-used for any other project.
 
 There is a common belief that specialization is necessary to obtain the most
 accurate results as possible on a given problem.
-SimGrid\cite{casanova:hal-01017319} however is a framework for simulation that
+SimGrid \cite{casanova:hal-01017319} however is a framework for simulation that
 builds on the idea that versatility serves accuracy, while ensuring high
 scalability.
 
 \section{SimGrid}
 
-TODO: Present SimGrid models briefly (its models mostly as well as its
-capabilitites).
-How can it model a Kubernetes clutser? -> a kube cluster is nothing but a
-distributed system with potentially a major network compomeent to be accounted
-for between nodes. SimGrid ca do all this, thanks to its capable network
-models.
+SimGrid \cite{casanova:hal-01017319} is a framework for builing distributed
+systems simulators written in C.  The team that developoed it state that its
+versatility makes it both accurate and scalable. This \textit{versatility} is
+not to be confused with \textit{genericity}: their models provide some amount
+of genericity so that they can be improved for specific tasks, but they are
+versatile enough to cover a wide range of domains. Projects based on SimGrid
+span accross a wide range of domains within distributed systems. WRENCH
+\cite{wrench} is a \textit{Workflow Management System} library that provide a
+high level API to eable the study of WMS. Simbatch \cite{simbatch} is a
+(discontinued) batch systems simulator made for the study of batch schedulers.
+Work has been done on the side of Volunteer Computing as well with SimBOINC
+\cite{kondo2007simboinc} that has been discontinued as well due to major
+reconstructions of SimGrid and the BOINC client or SimGrid-BOINC
+\cite{simgrid-boinc} by some of the same people behind SimGrid. And of course
+the recent Batsim \cite{dutot:hal-01333471} this work is based upon, which is a
+RJMS simulator, relies on SimGrid. All these projects prove the ability of
+SimGrid to perform in such various domains, and SimGrid models are known for
+their accuracy and scalability.
 
+GridSim \cite{gridsim} is another library for development of Grid Computing simulators.
 TODO: related simulators (GridSim)
-
-TODO: It is interesting to look at the other projects based on SimGrid
-(SimBOINC (unusable bc of a major simgrid reconstruction) and SimGrid-BOINC, WRENCH, Simbatch). They prove the
-versatility of SimGrid: it make sno doubt that SimGrid can accurately simulate
-any Kubernetes cluster.
 
 \section{The scheduling problem}
 
@@ -336,7 +344,7 @@ domains like peer-to-peer computing simulators like PeerSim
 \cite{p2p09-peersim} and OverSim \cite{baumgart2009oversim}, or volunteer
 computing simulators (\cite{simBA}, \cite{alonso2017combos})
 
-Simulators based on simgrid: SimBOINC \cite{kondo2007simboinc}
+Simulators based on simgrid: 
 
 Problems with simulation: often unrealeased simulators, or designed for a
 specific project, or short lived (OptorSim)
