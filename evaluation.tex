@@ -20,7 +20,10 @@ The entirety of the experiments are done with the default Kubernetes scheduler
 This choice was made because it was the scheduler used during development, and
 because supporting another scheduler would mean more development time which we
 could not afford. Still, it is sufficient to experiment with the simulator and
-verify the scheduler's behavior in the simulation.
+verify the scheduler's behavior in the simulation. All scripts used to run the
+experiment, process the workloads and generate the graphs present in this
+report -- along with some results -- are available on
+\textit{batkube-test}\footnote{github.com/oar-team/batkube-test} repository.
 
 \subsection{Real experimental testbed}
 
@@ -81,6 +84,11 @@ use of a plain text editor (understand \texttt{vim} and its macros). The third
 workload required more processing to be obtained.  
 
 \subsubsection{Standard Workload Format processing}
+
+Batsim provides a tool to translate SWF files to its own json definition. It
+also works as a workload preprocessor, although we want to process SWF files
+very specifically to suit our needs which is why a custom script was
+implemented.
 
 First, a trace in standard
 workload format (swf) was obtained on a web
@@ -348,13 +356,10 @@ The scheduler sometimes does not seem to get update on nodes resource state and
 realizes late that some nodes are free (is this still the case? need to plot
 gantt charts)
 
-\section{Scalability experiments and scheduler limits}
+\section{Scalability}
 
-We have extracted a few workloads recorded on real systems to test out the
-scheduler performances in regard to scalability, that is to say the ability to
-run large workloads in a minimal amount of time.
-
-PROTOCOL: go all out on large workloads and platform
-
-TODO: can't really run simulations that are too long because the scheduler
-fills the memory pretty fast.
+Batkube is by no means scalable in comparison of existing batch schedulers
+(TODO: ref to some papers to prove this point). At its current state, it exists
+to prove adapting Kubernetes schedulers is possible, leaving optimization for
+future works. Also, Kubernetes is not optimized for batch scheduling and usage
+in the HPC field is still in its early states.

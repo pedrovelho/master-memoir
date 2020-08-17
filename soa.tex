@@ -112,11 +112,19 @@ scalability.
 
 \section{SimGrid}
 
-TODO: Present SimGrid models briefly.
+TODO: Present SimGrid models briefly (its models mostly as well as its
+capabilitites).
 How can it model a Kubernetes clutser? -> a kube cluster is nothing but a
 distributed system with potentially a major network compomeent to be accounted
 for between nodes. SimGrid ca do all this, thanks to its capable network
 models.
+
+TODO: related simulators (GridSim)
+
+TODO: It is interesting to look at the other projects based on SimGrid
+(SimBOINC (unusable bc of a major simgrid reconstruction) and SimGrid-BOINC, WRENCH, Simbatch). They prove the
+versatility of SimGrid: it make sno doubt that SimGrid can accurately simulate
+any Kubernetes cluster.
 
 \section{The scheduling problem}
 
@@ -165,7 +173,7 @@ as possible, such as:
 
 All these elements make scheduling a very intricate problem that is at best
 polynomial in complexity, and often NP-hard
-(\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}). In order
+(\cite{10.1016/S0022-0000(75)80008-0}, \cite{scheduler-complexity}, \cite{BLAZEWICZ198311}). In order
 to better study the effect of different scheduling policies on a system a
 reasearcher team at the LIG have created Batsim which is a versatile
 distributed system simulator built on SimGrid and focused on the study of
@@ -257,40 +265,49 @@ container orchestration.
 
 \section{Related work}
 
-TODO: Redact this part better.
-
 Not many projects exist on Kubernetes simulation or have been disclosed. We
-were able to find only two projects that propose simulations of Kubernetes
-clusters.
+were able to find two projects that propose simulations of Kubernetes clusters.
 
-JoySim \cite{joysim} is a fully fledged Kubernetes simulator. Simulations are
-based on synthetic events which means there is no need for any advanced models
-to compute resource jobs resource usage and inter dependencies: everything is
-pre-written. The strength of this simulator is that the nodes are very light
-weight enabling for scalable simulations. JoySim is aimed at studying
-scheduling performances and quality in complex scenarios by generating metrics
-such as cpu and disk usage and scheduling time. Although, to the best of our
-knowledge, it is not suited for batch scheduling and tackles more classic
-issues for Kubernetes such as services availability and resource utilization.
-Unfortunately, while an open source released in planned, this piece of software
-is currently closed source.
+JoySim \cite{joysim} is a fully fledged Kubernetes simulator developoed in an
+industrial context. Simulations are based on synthetic events and mock nodes
+that do not require advanced models such as SimGrid: the nodes simply simulate
+a resource usage. The strenght of this simulator is its scalability which it
+obtains thanks to its very light weight mocj nodes. JoySim is aimed at studying
+the quality of the scheduling and its performances in complex scenarios by
+generating metrics such as cpu and disk usage and scheduling time. Although, to
+the best of our knowledge, it is not suited for batch scheduling and tackles
+more classic issues for Kubernetes such as services availability and resource
+utilization.  Unfortunately, while an open source released in planned, this
+piece of software is currently closed source.
 
 The other project is an end of studies project like this one.
 k8s-cluster-simulator\cite{k8s-cluster-simulator} is an open source cluster for
-evaluating schedulers. Its models are somewhat basic: Pods are submitted with
-certain resource requirements, for a certain amount of time which makes it
-event based like JoySim. One can provide any scheduler implementation they want
-as long as they do so through their Go interface, reducing the amount of
-schedulers that can be tested to Go implementations only (or provide an
-adaptive layer to their scheduler to support the simulator).\\
+evaluating schedulers. Like JoySim, it relies on simplistic models: pods are
+submitted with certain resource requirements, for a certain amount of time. One
+can provide any scheduler implementation they want as long as they do so
+through their Go interface. This reduces the amount of schedulers that can be
+tested to Go implementations only -- note that it is always possible to
+implement an adaptive layer to support any other scheduler, implying more
+development to support the simulator.\\
 
 TODO: Other simulators for studying schedulers: Alea (Gridsim), Accasim.
 
-TODO: Simulation in HPC (off line vs on line) and how this approaches are different from our fulyl specified workloads.
+Alea2: ready to use, standard implementations of scheduling algorithms and real
+time visualization of the simulation. Unlike batsim, can't plug any scheduler
+to it. It is based on GridSim which is cross platform because it is written in
+Java. Modular implementation like GridSim. Discrete events. Alea2 is easely customizable and extensible thanks to its object oriented paradigm which makes modularity a core feature of the simulator. It takes SWF or GWF as inputs.
 
-TODO: It is interesting to look at the other projects based on SimGrid
-(SimBOINC and SimGrid-BOINC, WRENCH). They prove the versatility of SimGrid: it
-make sno doubt that SimGrid can accurately simulate any Kubernetes cluster.
+Accasim: Discrete events as well. Jobs are loaded incrementally in opposition
+to Batsim which drastically improves memory onsumption with large workloads.
+Job duration estimations are supplied as job attributes. Like Alea, scheduling
+policies can be customized. Additional data about the current resources status (pwoer consumption, temperature or resource failures) can be provided to support more advanced dispatchers. There is an interface allowing the user to pass back results to the event manager in order to run such simulations.
+
+ScSF:
+
+According to Accasim paper Batsim is outperformed by both Accasim and Alea
+because of its high memory usage that hinders the simulation speed. But both
+lack the decoupling between the resources and the scheduler that we need in
+order to plug kube schedulers to it.
 
 NOTES
 
@@ -302,7 +319,7 @@ computing simulators (\cite{simBA}, \cite{alonso2017combos})
 Simulators based on simgrid: SimBOINC \cite{kondo2007simboinc}
 
 Problems with simulation: often unrealeased simulators, or designed for a
-specific project, or short lived (OptorSim) -> This is why Batsim was created.
+specific project, or short lived (OptorSim)
 
 Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
 
@@ -319,5 +336,3 @@ list of simulators
 \end{itemize}
 
 Kubernetes simulation: k8-cluster-simulator, joySim.
-
-Related to Batsim in particular: Aléa and Accasim.
