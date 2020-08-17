@@ -136,8 +136,24 @@ RJMS simulator, relies on SimGrid. All these projects prove the ability of
 SimGrid to perform in such various domains, and SimGrid models are known for
 their accuracy and scalability.
 
-GridSim \cite{gridsim} is another library for development of Grid Computing simulators.
-TODO: related simulators (GridSim)
+GridSim \cite{gridsim} is another library for development of Grid Computing
+simulators. Contrary to SimGrid it is coded in Java and therefore is cross
+platform. GridSim has a broader view on what a grid is: when SimGrid models
+wired networks and therefore only allows for specifications of localized
+resources, GridSim allows resources to be specified in any time zone. GridSim
+also support resources in \textit{time-shared} or \textit{space-shared} mode
+while SimGrid only models time shared resources. Modeling space shared
+resources allows GridSim to simulate multiple users competing to submit jobs
+simultaneously on the same resources, which is a feature that would require
+extending SimGrid models.  However, eventhough GridSim is very popular in its
+domain, its models are not as valid as SimGrid models. According to SimGrid's
+team a simple inspection of GridSim's code and its follow up Cloud simulator
+CloudSim \cite{cloudsim} is enough to find invalidating cases to its networking
+models \cite{10.1145/2517448}. Moreover, still according to SimGrid team,
+scalability tests showed that GridSim complexity is quadratic in the number of
+tasks and linear in the number of workers, as well as having a considerable
+memory footprint compared to SimGrid \cite{casanova:hal-01017319}.
+
 
 \section{The scheduling problem}
 
@@ -337,30 +353,30 @@ especially with large workloads because of its high memory usage that hinders
 the simulation speed.  However, both lack the decoupling between the resources
 and the scheduler that we need in order to plug Kubernetes schedulers onto it.
 
-NOTES
-
-Simulators are often intentionally very specialized. Some are aimed at specific
-domains like peer-to-peer computing simulators like PeerSim
-\cite{p2p09-peersim} and OverSim \cite{baumgart2009oversim}, or volunteer
-computing simulators (\cite{simBA}, \cite{alonso2017combos})
-
-Simulators based on simgrid: 
-
-Problems with simulation: often unrealeased simulators, or designed for a
-specific project, or short lived (OptorSim)
-
-Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
-
-Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
-
-list of simulators
-\begin{itemize}
-	\item SimGrid, GridSim, CloudSim, GroudSim (to cite the most important).
-	\item Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim, OverSim (peer to peer), WRENCH (workflows).
-	\item HPC simulation: off-line vs on-line
-	\item Interconnected networks Simulation: INSEE (environment for interconnected networks), SICOSYS. Aimed to be used with other tools like SIMICS to extend th ecapabilities.
-	\item Low level simulation: SIMICS, RSIM and SimOS (multiprocessor systems).
-	\item discontinued/old projects: GSSIM, Simbatch
-\end{itemize}
-
-Kubernetes simulation: k8-cluster-simulator, joySim.
+%NOTES
+%
+%Simulators are often intentionally very specialized. Some are aimed at specific
+%domains like peer-to-peer computing simulators like PeerSim
+%\cite{p2p09-peersim} and OverSim \cite{baumgart2009oversim}, or volunteer
+%computing simulators (\cite{simBA}, \cite{alonso2017combos})
+%
+%Simulators based on simgrid: 
+%
+%Problems with simulation: often unrealeased simulators, or designed for a
+%specific project, or short lived (OptorSim)
+%
+%Simulators specific to platforms: YARNSim, SLURM simulator\footnote{https://github.com/ubccr-slurm-simulator/slurm\_simulator} 
+%
+%Exemples of papers with custom unreleased simulators: \cite{yabuuchi2019lowlatency} by the same guys who made kubernetes-simulator.\\
+%
+%list of simulators
+%\begin{itemize}
+%	\item SimGrid, GridSim, CloudSim, GroudSim (to cite the most important).
+%	\item Other simulators in unrelated domains: SimBA (volunteer computing), PeerSim, OverSim (peer to peer), WRENCH (workflows).
+%	\item HPC simulation: off-line vs on-line
+%	\item Interconnected networks Simulation: INSEE (environment for interconnected networks), SICOSYS. Aimed to be used with other tools like SIMICS to extend th ecapabilities.
+%	\item Low level simulation: SIMICS, RSIM and SimOS (multiprocessor systems).
+%	\item discontinued/old projects: GSSIM, Simbatch
+%\end{itemize}
+%
+%Kubernetes simulation: k8-cluster-simulator, joySim.
