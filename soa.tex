@@ -310,17 +310,19 @@ container orchestration.
 
 \subsection{HPC and Kubernetes}
 
-In this work we treat Kubernetes schedulers as if they were capable of properly
-handling batch computing workloads because it is our domain of origin (Batsim
-	was developed in close relation with the teams behind the grid
-	computing simulator SimGrid\cite{casanova:hal-01017319} and the
-resource manager OAR \cite{oar}), and because it is conveninent for us to test
-our approach with HPC workloads. Kubernetes does have means to handle such
-workloads such as batch schedulers based on kube-batch\cite{kube-batch} and a
-special type of
+In this work we use Kubernetes schedulers as batch schedulers because batch
+scheduling is our domain of origin (Batsim was developed in close relation with
+	the teams behind the grid computing simulator
+	SimGrid\cite{casanova:hal-01017319} and the resource manager OAR
+\cite{oar}), and because it is convenient for us to test our approach with HPC
+workloads. However, even though Kubernetes does have means to handle such
+workloads like batch schedulers \cite{kube-batch} and a special type of
 resource\footnote{https://kubernetes.io/docs/concepts/workloads/controllers/job/},
-however it is necessary to understand the differences between HPC and cluster
-computing.
+these two fields differ fundamentally because of the nature of the issues they
+tackle. We do not intend to evaluate scheduler performance but rather prove
+that such studies are possible with Batsim, which is why this work is conducted
+this way. Still, there are perspectives for Kubernetes in the HPC community and
+we believe HPC systems could benefit from this work.
 
 The difference between HPC and cloud computing lies in the workloads they are
 intended to tackle.  Kubernetes was designed to run applications. Services or
@@ -345,8 +347,8 @@ kube-batch\footnote{\url{https://github.com/kubernetes-sigs/kube-batch}} have
 been implemented for kube, and numerous HPC applications like
 slurm\footnote{\url{https://slurm.schedmd.com/containers.html}} now support containers as well.
 
-Indeed, containers have many advantages that HPC users can benefit from. Here
-are some notable ones:
+Indeed, containers have many advantages from which HPC users could benefit
+from.
 \begin{itemize}
 	\item First off, research has shown that Kuberenetes offer similar
 		performance to more standard bare metal HPC\cite{8950981}.
