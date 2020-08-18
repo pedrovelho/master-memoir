@@ -38,6 +38,11 @@ Protocol.
 	\label{fig:bati-seq-diag}
 \end{figure}
 
+TODO: desbribe Batsim workloads and platform.
+A Batsim platform is a SimGrid platform, defined in the xml format. A node can
+endorse the role of \textit{master}, \textit{compute\_resource} or
+\textit{storage}. 
+
 Batsim messaging interface is based on its protocol. Each message is composed
 of the current simulation time, as well as a list of events either from Batsim
 to the scheduler, or from the scheduler to Batsim. Figure \ref{fig:batmsg_ex}
@@ -71,10 +76,10 @@ depicts a standard message sent from the scheduler to Batsim.
 \label{fig:batmsg_ex}
 \end{figure}
 
-Batkube's features being very basic because we focused on building a working
-proof of concept rather than a fully fledged Kubernetes simulator, we only
-consider a subset of these messages that we briefly present here. More
-information on Batsim's protocol is available on Batsim
+Batkube's features are limited because we focused on building a working proof
+of concept rather than a fully fledged Kubernetes simulator. This is why only
+consider a subset of these messages that we present here. More information on
+Batsim's protocol is available on Batsim
 documentation\footnote{https://batsim.readthedocs.io/en/latest/protocol.html}
 
 \subsubsection{From Batsim to the scheduler}
@@ -170,15 +175,17 @@ to facilitate communication between them, and enables the use of proxies to
 access the underlying services. A set of nodes is called a \textbf{cluster}
 which is the highest abstraction layer in Kubernetes.
 
-Nodes take the idea of containerisation further than plain containers by
+Nodes take the idea of containerization further than plain containers by
 encapsulating the already encapsulated services.  Each node runs at least one
 pod, the \textbf{kubelet}, which is a process responsible for communicating
 with the rest of Kubernetes. More precisely, the kubelet communicates with the
-\textbf{kube-api-server} which is responsible for the whole cluster.  This API
-server, as well as the other components of the \textbf{Control Plane} (figure
-\ref{fig:kube-components}), can be run on any machine but for simplicity they
-are set up on the same machine at start up. This machine is often called the
-\textbf{master} node and typically does not run any other container.
+\textbf{kube-api-server} which is responsible for the whole cluster. We refer
+to this API as the api-server, as it is called within the Kubernetes community.
+This API server, as well as the other components of the \textbf{Control Plane}
+(figure \ref{fig:kube-components}), can be run on any machine but for
+simplicity they are set up on the same machine at start up. This machine is
+often called the \textbf{master} node and typically does not run any other
+container.
 
 As stated before Kubernetes revolves around its API server which is its central
 component. All operations between components go through this REST API. These
@@ -187,59 +194,14 @@ interface \textbf{kubectl}, scheduling operations or management of cluster data
 on \textbf{etcd}. We then decided to re-build the API in order to simulate any
 cluster to -- almost -- any Kubernetes scheduler.
 
+TODO: Talk about Kubernetes schedulers. What they are based on, how they communicate to Kubernetes.
+
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{./imgs/components-of-kubernetes.png}
 	\captionsource{Components of Kubernetes}{https://kubernetes.io/docs/concepts/overview/components/}
 	\label{fig:kube-components}
 \end{figure}
-
-%\subsection{HPC and Kubernetes}
-%The difference between HPC and Cloud Native computing lies in the workloads
-%they are intended to tackle.  Kubernetes was designed for Cloud Native
-%applications. Services or micro services are run in containers and are expected
-%to be available at all times : they are replicated as many times as the user
-%desires and restarted whenever a failure occurs. High availability is at the
-%core of Kubernetes container management.  On the other hand, depending on
-%scheduling policies, HPC is focused on user wait time, maximizing resource
-%usage, optimizing energy costs... For instance, in case of failure, it is
-%sometimes not sufficient to restart the single job that failed : the entire
-%submission must be re-run if it is part of several jobs computed in parallel.
-%
-%Kubernetes is now the standard for AI and Machine Learning as shown by the many
-%efforts at making this coupling an efficient
-%environment\cite{lee2017design}\cite{233001}\cite{10.1145/3154842.3154845},
-%which brought an increasing interest for container driven HPC aswell and
-%Kubernetes for HPC in particular. Batch schedulers such as
-%kube-batch\footnote{\url{https://github.com/kubernetes-sigs/kube-batch}} have
-%been implemented for kube, and numerous HPC applications like
-%slurm\footnote{\url{https://slurm.schedmd.com/containers.html}} now support containers as well.
-%
-%Indeed, containers have many advantages that HPC users can benefit from. Here
-%are some notable ones:
-%\begin{itemize}
-%	\item First off, research has shown that Kuberenetes offer similar
-%		performance to more standard bare metal HPC\cite{8950981}.
-%	\item Users will get the same environment everywhere making up for a
-%		uniform and standardized workplace.
-%	\item Portability : users could seamlessly hop from one infrastructure
-%		to another based on their needs and criteria like price,
-%		performance, and capabilities rather than compatibility.
-%	\item Encapsulation : HPC applications often rely on complex
-%		dependencies that can be easily concealed into containers.
-%\end{itemize}
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[scale=0.5]{./imgs/hpc-container.jpg}
-%	\captionsource{The container technology for HPC}{https://www.hpcwire.com/2019/09/19/kubernetes-containers-and-hpc/}
-%	\label{fig:hpc-container}
-%\end{figure}
-%
-%Despite all those advantages, Kubernetes is not ready yet to be used in proper
-%HPC environment because it lacks vital components like a proper batch job
-%queuing system, and support for MPI applications. It cannot yet compete against
-%the very well established HPC ecosystem, but that time may come soon as
-%containers are becoming more and more integrated in modern infrastructures.
 
 
 \section{General architecture of Batkube and its integration with Kubernetes and Batsim}
@@ -275,18 +237,6 @@ Kuberenetes exchanges.
 	\label{fig:mock_nodes}
 \end{figure}
 
-An equivalent option is a partial re implementation of the api. We dig deep
-into the code of the API to redirect only the calls to know the resource
-states. It has the same benefits as the last option but requires going even
-deeper into kube code. Not viable.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.8]{imgs/partial-reimplem.png}
-	\caption{Partial reimplementation of the api-server.}
-	\label{fig:partial_reimp}
-\end{figure}
-
 \subsubsection{Custom client-go}
 
 Most Kubernetes schedulers rely on
@@ -313,15 +263,31 @@ not rely on client-go is a toy scheduler written in bash \cite{bash-scheduler}.
 
 \subsubsection{Custom API}
 
+
 Re-implementing the API offers a middle ground between the low level and
 undocumented solution of the mock nodes, and the higher level and technically
-challenging solution of a client-go fork. Building a new API allows us to
-implement only the endpoints we need and have complete control over the source
-code. The technically challenging aspect here is Kubernetes resource
-management. Indeed, we need to provide the scheduler with expected informations
-bout the cluster state if we want to obtain a correct behavior from it, and
-while the endpoints of the API are well documented, Kuberenetes did not write
-lengths about how resources are managed internally.
+challenging solution of a client-go fork. Again, there are several options here.
+
+A partial reimplementation of the API would save us the task of building a new
+API from the ground up. However this would imply digging deep into the
+api-server code in order to understand how the api is organized and what code
+we would have to alter. In the end, it is easier to simply build a new API,
+since there are tools to help us generate it from its specification.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.8]{imgs/partial-reimplem.png}
+	\caption{Partial reimplementation of the api-server.}
+	\label{fig:partial_reimp}
+\end{figure}
+
+Furthermore, building a new API allows us to consider only the endpoints we
+need and have complete control over the source code. The technically
+challenging aspect here is Kubernetes resource management. Indeed, we need to
+provide the scheduler with expected informations about the cluster state if we
+want to obtain a correct behavior from it, and while the endpoints of the API
+are well documented, Kubernetes team did not write lengths about how resources
+are managed internally.
 
 \begin{figure}[h]
 	\centering
@@ -345,10 +311,10 @@ scheduler time is explained in section \ref{sec:time-hijack}. The \textbf{rest
 api} is the reimplementation of the Kubernetes api-server. It ensures the
 scheduler gets all the necessary information on the cluster state to make its
 scheduling decisions, and it is also the receiver of those decisions. Section
-\cite{api} explains how we built this API using the api-server specification
-and a tool to automatically generate its code from this specification.
-\textbf{translate} is a utility package providing functions to translate
-Kubernetes resources to Batsim messages, and \textit{vice versa}.
+\ref{sec:api} explains how we built this API and a tool to automatically
+generate its code from the api-server specification.  \textbf{translate} is a
+utility package providing functions to translate Kubernetes resources to Batsim
+messages, and \textit{vice versa}.
 
 \begin{figure}[h]
 	\centering
@@ -359,17 +325,27 @@ Kubernetes resources to Batsim messages, and \textit{vice versa}.
 
 \section{Building the API} \label{sec:api}
 
-The API is based on OpenAPI\footnote{https://www.openapis.org/about} and provides a full specification\
+The API of Kubernetes follows the
+OpenAPI\footnote{https://www.openapis.org/about} 2 specification which is a
+standard for describing APIs. Luckily tools exist to generate such
+specification from source code, but also to generate code from a specification.
+Since the Kubernetes API specification is available on their
+reposotory\footnote{https://github.com/kubernetes/kubernetes/blob/release-1.18/api/openapi-spec/swagger.json},
+we were able to use such tools. This allowed us not to implement boiler plate
+code by hand and fill the gaps where they needed to be filled, leaving empty
+the endpoints we do not need. These endpoints can be dealt with later for
+future development of the simulator. For this project we used
+go-swagger\footnote{https://github.com/go-swagger/go-swagger/tree/master/examples/stream-server}
+to generate our code and the API specification corresponds to the release 1.18
+of Kubernetes. One downside of this method is that go-swagger forbids to tamper
+with the code of the server itself, although we did not need to during this
+project.
+
+In order to enable communication between Batsim and the scheduler we need to
+translate Batsim messages into Kubernetes resources that can be retrieved by
+the scheduler and scheduler decisions to Batsim messages.
 
 TODO
-
-The tools we used (go-swagger, kuberenets open api spec) and why we chose
-these tools: to automate the technical side of the project, to not have to
-write boiler plate code.
-
-Downside: go-swagger takes a bit of getting used to
-and we can't make any changes to the server itself, although we don't really
-need to.  
 
 Translation of resources (and management of resources).
 

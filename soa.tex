@@ -222,7 +222,6 @@ reasearcher team at the LIG have created Batsim which is a versatile
 distributed system simulator built on SimGrid and focused on the study of
 schedulers.
 
-TODO: Talk about Kubernetes schedulers. What they are based on, how they communicate to Kubernetes.
 
 \section{Batsim}
 
@@ -308,6 +307,69 @@ general idea and was anounced at the same time as the CNCF. It aims at
 automating of the process of deploying, maintaining and scaling containerized
 applications. It is industry grade and is now the de-facto solution for
 container orchestration.
+
+\subsection{HPC and Kubernetes}
+
+In this work we treat Kubernetes schedulers as if they were capable of properly
+handling batch computing workloads because it is our domain of origin (Batsim
+	was developed in close relation with the teams behind the grid
+	computing simulator SimGrid\cite{casanova:hal-01017319} and the
+resource manager OAR \cite{oar}), and because it is conveninent for us to test
+our approach with HPC workloads. Kubernetes does have means to handle such
+workloads such as batch schedulers based on kube-batch\cite{kube-batch} and a
+special type of
+resource\footnote{https://kubernetes.io/docs/concepts/workloads/controllers/job/},
+however it is necessary to understand the differences between HPC and cluster
+computing.
+
+The difference between HPC and cloud computing lies in the workloads they are
+intended to tackle.  Kubernetes was designed to run applications. Services or
+micro services are run in containers and are expected to be available at all
+times : they are replicated as many times as desired and restarted whenever a
+failure occurs. High availability is at the core of Kubernetes container
+management.  On the other hand, depending on implemented scheduling policies,
+HPC is focused on metrics such as user wait time, resource usage or energy
+cost. One example of a fundamental difference between cluster computing and
+batch scheduling is the handling of a task failure. In HPC it is sometimes not
+sufficient to restart the single job that failed and the entire submission must
+be re-run if it is part of several jobs computed in parallel. In cluster
+computing the task is simply restarted without any other consideration -- other
+than ensuring its dependencies are restarted with it.
+
+Kubernetes is now the standard for AI and Machine Learning as shown by the many
+efforts at making this coupling an efficient
+environment\cite{lee2017design}\cite{233001}\cite{10.1145/3154842.3154845},
+which brought an increasing interest for container driven HPC aswell and
+Kubernetes for HPC in particular. Batch schedulers such as
+kube-batch\footnote{\url{https://github.com/kubernetes-sigs/kube-batch}} have
+been implemented for kube, and numerous HPC applications like
+slurm\footnote{\url{https://slurm.schedmd.com/containers.html}} now support containers as well.
+
+Indeed, containers have many advantages that HPC users can benefit from. Here
+are some notable ones:
+\begin{itemize}
+	\item First off, research has shown that Kuberenetes offer similar
+		performance to more standard bare metal HPC\cite{8950981}.
+	\item Users will get the same environment everywhere making up for a
+		uniform and standardized workplace.
+	\item Portability : users could seamlessly hop from one infrastructure
+		to another based on their needs and criteria like price,
+		performance, and capabilities rather than compatibility.
+	\item Encapsulation : HPC applications often rely on complex
+		dependencies that can be easily concealed into containers.
+\end{itemize}
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.5]{./imgs/hpc-container.jpg}
+	\captionsource{The container technology for HPC}{https://www.hpcwire.com/2019/09/19/kubernetes-containers-and-hpc/}
+	\label{fig:hpc-container}
+\end{figure}
+
+Despite all those advantages, Kubernetes is not ready yet to be used in proper
+HPC environment because it lacks vital components like a proper batch job
+queuing system and support for MPI applications. It cannot yet compete against
+the very well established HPC ecosystem, but that time may come soon as
+containers are becoming more and more integrated in modern infrastructures.
 
 \section{Related work}
 
