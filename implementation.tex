@@ -143,10 +143,9 @@ that can be computed from this output:
 
 \section{Kubernetes concepts}
 
-Kubernetes is a large ecosystem that we can not possibly describe or study in
-its entirety in the short amount of time that was allocated to this project.
-Instead, let us focus on some details about scheduling in Kubernetes and how it
-differs from the Batsim approach.
+Kubernetes is now a large ecosystem to which more than 2 700 developers have
+contributed over the years. In this section we present the fundamental concepts
+and the components that make up Kubernetes.
 
 \begin{figure}[h]
 	\centering
@@ -247,24 +246,34 @@ cluster to -- almost -- any Kubernetes scheduler.
 
 \subsection{Integration with Kubernetes}
 
-In order to be able to plug Kubernetes schedulers into Batsim we need to
-position ourselves between the scheduler and the cluster. There are several
-options here. First we present the options we considered but did not choose,
-and then we explain how we wrote a custom REST API which acts as a Kubernetes
-cluster to the scheduler, and as an event based scheduler to Batsim.
-
-TODO: Redact the following sections
+In order to adapt Kubernetes schedulers for use with Batsim we need to position
+ourselves between the Kubernetes scheduler and the cluster. There are several
+options here, at different levels of the cluster. All these are made possible
+by the fact that Kubernetes is entirely open source and can be reverse
+engineered and modified to suit our needs. First we present the options we
+considered but did not choose, and then we explain how we wrote a custom REST
+API which acts as a Kubernetes cluster to the scheduler, and as an event based
+scheduler to Batsim.
 
 \subsubsection{In between the api and the kubelets}
 
-High level option: we leave resource management to the API and position
-ourselves as the kubelets. Downside: it is not documented, as this side of
-Kubernetes is not supposed to be used or tampered with by the general user (or
-even power user). We would need to reverse engineer the communications between
-the kubelets and the API. Also there is a good chance the API and the kubelets
-are tightly coupled together, making it even more difficult to fool the API.
+This is the lowest level option. We position the simulator so as to simulate
+just the infrastructure and avoid tampering with Kubernetes resource
+management, which is done in their API. This approach would allow us to
+effortlessly use any Kubernetes scheduler once their API is supported by
+Batkube, and potentially produce the most accurate results. However,
+interactions between the kubelets and the API are not documented because the
+typical user is not supposed to have to deal with this part of Kubernetes. This
+would hinder the development of Batkube because a reverse engineering process
+would be required beforehand to understand the intricacies of internal
+Kuberenetes exchanges.
 
-TODO: little illustration of this option.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/architecture-as-kubelets.png}
+	\caption{Mocking the cluster itself.}
+	\label{fig:mock_nodes}
+\end{figure}
 
 An equivalent option is a partial re implementation of the api. We dig deep
 into the code of the API to redirect only the calls to know the resource
@@ -274,16 +283,18 @@ deeper into kube code. Not viable.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{imgs/partial-reimplem.png}
-	\caption{Partial re-implementation of the API.}
+	\caption{Partial reimplementation of the api-server.}
 	\label{fig:partial_reimp}
 \end{figure}
 
 \subsubsection{Custom client-go}
 
-We completely ditch the API by altering the go client. We have to manage the
-resources ourselves and also dig into client-go code. This solution is
-equivalent to re building the api entirely, with the added challenge of going
-through the client-go code.
+Most Kubernetes schedulers rely on
+client-go\footnote{https://github.com/kubernetes/client-go}, which is a Go
+client for the api-server. It is a library implementing various tools to help
+schedulers converse with the API. By altering this client and patching
+schedulers so they use our client instead, we can make it exchange with Batsim
+instead of the API. 
 
 \begin{figure}[h]
 	\centering
@@ -292,11 +303,25 @@ through the client-go code.
 	\label{fig:custom-go-client}
 \end{figure}
 
+Contrary to the kubelets, client-go is a user interface and therefore it is
+documented, facilitating reverse engineering of its source code. Still, it
+represents thousands of lines of code and altering it to our needs would not be
+an easy feat.  The other drawback to this approach is that Batkube would only
+support schedulers written in Go and making use of client-go, although this
+should not be an issue as the only kubernetes scheduler we could find that does
+not rely on client-go is a toy scheduler written in bash \cite{bash-scheduler}.
+
 \subsubsection{Custom API}
 
-This is the option we opted for. We have tools to generate the api
-automatically, we do not have to dig through any code. We still have to handle
-the resources ourselves, but it actually is not too big a deal.
+Re-implementing the API offers a middle ground between the low level and
+undocumented solution of the mock nodes, and the higher level and technically
+challenging solution of a client-go fork. Building a new API allows us to
+implement only the endpoints we need and have complete control over the source
+code. The technically challenging aspect here is Kubernetes resource
+management. Indeed, we need to provide the scheduler with expected informations
+bout the cluster state if we want to obtain a correct behavior from it, and
+while the endpoints of the API are well documented, Kuberenetes did not write
+lengths about how resources are managed internally.
 
 \begin{figure}[h]
 	\centering
@@ -306,6 +331,8 @@ the resources ourselves, but it actually is not too big a deal.
 \end{figure}
 
 \subsection{Architecture of Batkube}
+
+Figure \ref{fig:batkube-architecture} depicts the architecture of Batkube. 
 
 TODO: explanatory text for batkube's architecture.
 
@@ -317,6 +344,8 @@ TODO: explanatory text for batkube's architecture.
 \end{figure}
 
 \section{Building the API}
+
+The API is based on OpenAPI\footnote{https://www.openapis.org/about} and provides a full specification\
 
 TODO
 
