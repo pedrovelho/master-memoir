@@ -37,3 +37,9 @@ make up for odd scheduler crash detections (it was increased up to 30s).
 However, it did not have any impact on the results as we do not take into
 account simulation time in case of failure.
 
+TODO
+
+Limits: explain how dirty the resource management system is (non
+thread safe, stored in memory, little hacks for the resource version) and
+briefly write on how it induces problems for the scheduler (over allocating
+resources) (we talk about this in the evaluation part).
