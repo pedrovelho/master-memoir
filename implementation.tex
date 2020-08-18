@@ -282,7 +282,7 @@ deeper into kube code. Not viable.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\textwidth]{imgs/partial-reimplem.png}
+	\includegraphics[scale=0.8]{imgs/partial-reimplem.png}
 	\caption{Partial reimplementation of the api-server.}
 	\label{fig:partial_reimp}
 \end{figure}
@@ -298,7 +298,7 @@ instead of the API.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics{imgs/custom-go-client.png}
+	\includegraphics[scale=0.8]{imgs/custom-go-client.png}
 	\caption{Custom Go client to redirect scheduler communications to Batsim}
 	\label{fig:custom-go-client}
 \end{figure}
@@ -332,9 +332,23 @@ lengths about how resources are managed internally.
 
 \subsection{Architecture of Batkube}
 
-Figure \ref{fig:batkube-architecture} depicts the architecture of Batkube. 
-
-TODO: explanatory text for batkube's architecture.
+Figure \ref{fig:batkube-architecture} depicts the architecture of Batkube,
+which is written in Go.  The central component is the \textbf{broker}. It
+handles the messages coming from Batsim and the scheduler while ensuring time
+synchronization between them. It is responsible for translating and forwarding
+messages between Batsim and the scheduler and orchestrates the synchronization
+between the two parties.  \textbf{batsky-go} intercepts the calls to Go
+\textit{time} library to ensure the scheduler's time is based on the simulation
+time instead of machine time. Time requests are forwarded to Batkube which
+replies with the current simulation time.  The complete process to ``hijack''
+scheduler time is explained in section \ref{sec:time-hijack}. The \textbf{rest
+api} is the reimplementation of the Kubernetes api-server. It ensures the
+scheduler gets all the necessary information on the cluster state to make its
+scheduling decisions, and it is also the receiver of those decisions. Section
+\cite{api} explains how we built this API using the api-server specification
+and a tool to automatically generate its code from this specification.
+\textbf{translate} is a utility package providing functions to translate
+Kubernetes resources to Batsim messages, and \textit{vice versa}.
 
 \begin{figure}[h]
 	\centering
@@ -343,7 +357,7 @@ TODO: explanatory text for batkube's architecture.
 	\label{fig:batkube-architecture}
 \end{figure}
 
-\section{Building the API}
+\section{Building the API} \label{sec:api}
 
 The API is based on OpenAPI\footnote{https://www.openapis.org/about} and provides a full specification\
 
@@ -364,7 +378,7 @@ thread safe, stored in memory, little hacks for the resource version) and
 briefly write on how it induces problems for the scheduler (over allocating
 resources) (we talk about this in the evaluation part).
 
-\section{Time interception}
+\section{Time interception} \label{sec:time-hijack}
 
 TODO: explain why we need to synchronize time between the scheduler and Batsim.
 
