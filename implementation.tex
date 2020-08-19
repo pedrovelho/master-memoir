@@ -9,23 +9,18 @@ accessed anytime by any component.
 The question that arises is, can we adapt Batsim to make it support Kubernetes
 schedulers? Is it possible to implement an adaptive layer between a synchronous
 event based simulator like Batsim and a scheduler implemented following the
-asynchronous paradigms of APIs?
+asynchronous paradigms of APIs? To answer these issues we developed
+Batkube\footnote{github.com/oar-team/batkube}, which is an adaptive interface
+to Batsim for Kubernetes schedulers.
 
 It will follow that in order to do so, we re-implemented an API following
-Kubernetes specifications and intercepted the scheduler's time to
-synchronize it with the simulation time. This allows us to run lengthy
-workloads in seconds using a scheduler otherwise supposed to rely on ``real''
-machine time. We first describe some technical concepts about Kubernetes and
-Batsim, and then describe how we re-implemented the API, intercepted the time,
-and handled the synchronization of the different times between Batsim and the
+Kubernetes specifications and intercepted the scheduler's time to synchronize
+it with the simulation time. This allows us to simulate lengthy workloads in a
+short period using a scheduler otherwise supposed to rely on ``real'' machine
+time. We first describe some technical concepts about Kubernetes and Batsim,
+and then describe how we re-implemented the API, intercepted the time, and
+handled the synchronization of the different times between Batsim and the
 scheduler.
-
-
-\subsubsection{Batkube features}
-
-TODO: Clearly state what Batkube is capable of, and what it does not do. This
-helps describing only the parts of the tools we use while leaving the rest for
-the reader to look for on official documentation.
 
 \section{Batsim concepts}
 
@@ -80,60 +75,13 @@ Batsim messaging interface is based on its protocol. Each message is composed
 of the field \textit{timestamp} which contains the current simulation time, as
 well the field \textit{events} which is a list of events either from Batsim to
 the scheduler, or from the scheduler to Batsim. Figure \ref{fig:batmsg_ex}
-depicts a standard message sent from the scheduler to Batsim.
-
-Batkube features are limited because we focused on building a working proof
-of concept rather than a fully fledged Kubernetes simulator. This is why only
-consider a subset of these messages that we present here. More information on
-Batsim's protocol is available on Batsim
+depicts a standard message sent from the scheduler to Batsim.  Batkube features
+are limited because we focused on building a working proof of concept rather
+than a fully fledged Kubernetes simulator which is why only consider a subset
+of these messages. We provide a list of supported events and their description
+in the section \ref{batmsg} of the appendix. More information on Batsim's
+protocol is available on Batsim
 documentation\footnote{https://batsim.readthedocs.io/en/latest/protocol.html}
-
-TODO: Adrien's view on this section is that it is not necessary and that a link to the doc is sufficient.
-
-\subsubsection{From Batsim to the scheduler}
-
-\paragraph{SIMULATION\_BEGINS}
-contains information about the available resources in the cluster, with
-Batsim's configuration.
-
-\paragraph{SIMULATION\_ENDS}
-is sent at the very end of the simulation: all jobs have finished, and no more
-jobs are left in the queues. Batsim exits on this message.
-
-\paragraph{JOB\_SUBMITTED}
-notifies the scheduler that a new job has been submitted. It contains
-information about the job type, id and specifications. We only consider jobs of
-type \textit{delay} to simplify the models. Delay jobs specifications boil down
-to the delay length, to which we add resource requests.
-
-\paragraph{JOB\_COMPLETED}
-notifies the scheduler that a job has ended, specifying the reason for it. We
-only consider situations where all jobs complete correctly. Their state is then
-always COMPLETED\_SUCCESSFULLY in our case.
-
-\paragraph{REQUESTED\_CALL}
-is an awnser to a CALL\_ME\_LATER event sent by the scheduler.
-
-\subsubsection{From the scheduler to Batsim}
-
-\paragraph{CALL\_ME\_LATER}
-is an incentive from the scheduler for Batsim to wake up at a certain
-timestamp. When the timestamp is reached in the simulation, Batsim will send a
-REQUESTED\_CALL to the scheduler. In our case, this particular exchange will
-serve as the base for time synchronisation between the scheduler and Batsim.
-
-\paragraph{EXECUTE\_JOB}
-is sent when the scheduler has made a decision. It contains the id of the job
-at stake and the id of the resources it has been scheduled to.
-
-\subsubsection{Bidirectional}
-
-\paragraph{NOTIFY}
-is used to send some information to the other peer. In our case, we use the
-NOTIFY containing no\_more\_static\_job\_to\_submit to determine if the
-simulation has ended: knowing that there are no more jobs susceptible to be
-scheduled allow us to fast forward to the end of the simulation, thus saving
-execution time.\\
 
 Batsim's output takes the form of a csv file containg information about the
 jobs executions. Mainly we take interest in their submission time, execution
@@ -222,90 +170,14 @@ TODO: Talk about Kubernetes schedulers. What they are based on, how they communi
 
 \section{General architecture of Batkube and its integration with Kubernetes and Batsim}
 
-TODO: move the parts where I explain what we did not do to the appendix
-
 \subsection{Integration with Kubernetes}
 
 In order to adapt Kubernetes schedulers for use with Batsim we need to position
-ourselves between the Kubernetes scheduler and the cluster. There are several
-options here, at different levels of the cluster. All these are made possible
-by the fact that Kubernetes is entirely open source and can be reverse
-engineered and modified to suit our needs. First we present the options we
-considered but did not choose, and then we explain how we wrote a custom REST
-API which acts as a Kubernetes cluster to the scheduler, and as an event based
-scheduler to Batsim.
-
-\subsubsection{In between the api and the kubelets}
-
-This is the lowest level option. We position the simulator so as to simulate
-just the infrastructure and avoid tampering with Kubernetes resource
-management, which is done in their API. This approach would allow us to
-effortlessly use any Kubernetes scheduler once their API is supported by
-Batkube, and potentially produce the most accurate results. However,
-interactions between the kubelets and the API are not documented because the
-typical user is not supposed to have to deal with this part of Kubernetes. This
-would hinder the development of Batkube because a reverse engineering process
-would be required beforehand to understand the intricacies of internal
-Kuberenetes exchanges.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{imgs/architecture-as-kubelets.png}
-	\caption{Mocking the cluster itself.}
-	\label{fig:mock_nodes}
-\end{figure}
-
-\subsubsection{Custom client-go}
-
-Most Kubernetes schedulers rely on
-client-go\footnote{https://github.com/kubernetes/client-go}, which is a Go
-client for the api-server. It is a library implementing various tools to help
-schedulers converse with the API. By altering this client and patching
-schedulers so they use our client instead, we can make it exchange with Batsim
-instead of the API. 
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.8]{imgs/custom-go-client.png}
-	\caption{Custom Go client to redirect scheduler communications to Batsim}
-	\label{fig:custom-go-client}
-\end{figure}
-
-Contrary to the kubelets, client-go is a user interface and therefore it is
-documented, facilitating reverse engineering of its source code. Still, it
-represents thousands of lines of code and altering it to our needs would not be
-an easy feat.  The other drawback to this approach is that Batkube would only
-support schedulers written in Go and making use of client-go, although this
-should not be an issue as the only kubernetes scheduler we could find that does
-not rely on client-go is a toy scheduler written in bash \cite{bash-scheduler}.
-
-\subsubsection{Custom API}
-
-
-Re-implementing the API offers a middle ground between the low level and
-undocumented solution of the mock nodes, and the higher level and technically
-challenging solution of a client-go fork. Again, there are several options here.
-
-A partial reimplementation of the API would save us the task of building a new
-API from the ground up. However this would imply digging deep into the
-api-server code in order to understand how the api is organized and what code
-we would have to alter. In the end, it is easier to simply build a new API,
-since there are tools to help us generate it from its specification.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.8]{imgs/partial-reimplem.png}
-	\caption{Partial reimplementation of the api-server.}
-	\label{fig:partial_reimp}
-\end{figure}
-
-Furthermore, building a new API allows us to consider only the endpoints we
-need and have complete control over the source code. The technically
-challenging aspect here is Kubernetes resource management. Indeed, we need to
-provide the scheduler with expected informations about the cluster state if we
-want to obtain a correct behavior from it, and while the endpoints of the API
-are well documented, Kubernetes team did not write lengths about how resources
-are managed internally.
+ourselves between the Kubernetes scheduler and the cluster. Several level of
+implementations are possible, and after some considerations described in
+section \ref{sec:imp_levels} of the appendix we decided to reimplement
+Kubernetes API. This new implementation will act as a Kubernetes cluster to the
+scheduler, and as an event based scheduler to Batsim.
 
 \begin{figure}[h]
 	\centering
@@ -313,6 +185,16 @@ are managed internally.
 	\caption{Custom REST API in between the scheduler and Batsim.}
 	\label{fig:custom-api}
 \end{figure}
+
+Building a new API allows us to consider only the endpoints we need and have
+complete control over the source code. The technically challenging aspect here
+is Kubernetes resource management. Indeed, we need to provide the scheduler
+with expected informations about the cluster state if we want to obtain a
+correct behavior from it, and while the endpoints of the API are well
+documented, Kubernetes team did not write lengths about how resources are
+managed internally. In order to save us the hassle of writing the entire code
+of the server, we used tools to generate the code from the api-server
+specification as described in section \ref{sec:api}.
 
 \subsection{Architecture of Batkube}
 
@@ -370,8 +252,6 @@ Kubernetes nodes.
 
 \section{Time interception} \label{sec:time-hijack}
 
-TODO: same remark as earlier, move the C implementation part in the appendix.
-
 Kubernetes schedulers are not event based schedulers. They constantly check on
 the cluster state and make decisions accordingly, therefore they are based on
 machine time to make their decisions. However, in order to have correct
@@ -383,30 +263,11 @@ Go's time library (\ref{fig:patch-go}) and then patch the scheduler so it uses
 our library instead of the official one.
 
 \begin{figure}[]
-	\begin{subfigure}{0.5\textwidth}
-		\centering
-		\includegraphics[scale=0.8]{imgs/time-hijack-C.png}
-		\caption{Option A: patching the C library}
-		\label{fig:patch-C}
-	\end{subfigure}
-	\begin{subfigure}{0.5\textwidth}
-		\centering
-		\includegraphics[scale=0.75]{imgs/time-hijack-Go.png}
-		\caption{Option B: patching Go}
-		\label{fig:patch-go}
-	\end{subfigure}
-	\caption{Different approaches to intercept the scheduler calls to machine time}
+	\centering
+	\includegraphics[scale=0.75]{imgs/time-hijack-Go.png}
+	\caption{Partially reimplementing Go source code allow us to intercept calls to get machine time.}
 	\label{fig:patch-time}
 \end{figure}
-
-An attempt was first made for the custom C library, which is the lowest level
-solution. Going for the low level solution would truly redirect all calls to
-machine time which is something we can not guarantee with the second option, as
-we will see in section \ref{sec:patch-scheds}. This approach proved challenging
-due to circular dependency issues and was ultimately abandoned. We opted for
-the second option which consist of modifying Go source code, which requires
-some additional work to patch the schedulers but was actually easier to
-implement.
 
 \subsection{Redirection of time requests to Batkube}
 
@@ -537,7 +398,11 @@ custom objects, which would break compatibility with the rest of the code. It
 makes use of Go Abstract Syntax Tree (AST) to go through the source files and
 replace the appropriate symbols, while adding the import to our module whenever
 it is necessary. Go \texttt{ast} package make it very convenient to search and
-replace symbols in the syntax tree.
+replace symbols in the syntax tree.  Unfortunately, we cannot replace the calls
+of the Go source code itself with this approach which creates inconsistencies
+between the scheduler code now based on simulation time, and native Go code
+still based on machine time. Aside from creating warnings, these
+inconsistencies did not prevent the scheduler to function correctly.
 
 \section{Time synchronization}
 
@@ -651,3 +516,4 @@ the simulation. We study those effects in section \ref{sec:params-eval}.
 %	}
 %	addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + incrementValue}
 %\end{algorithm}
+

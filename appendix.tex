@@ -99,3 +99,148 @@ resources) (we talk about this in the evaluation part).
 TODO
 
 Explain the first implementation of timer requests that generate call me laters.
+
+\subsection{batsim messages} \label{sec:batmsg}
+
+\subsubsection{From Batsim to the scheduler}
+
+\paragraph{SIMULATION\_BEGINS}
+contains information about the available resources in the cluster, with
+Batsim's configuration.
+
+\paragraph{SIMULATION\_ENDS}
+is sent at the very end of the simulation: all jobs have finished, and no more
+jobs are left in the queues. Batsim exits on this message.
+
+\paragraph{JOB\_SUBMITTED}
+notifies the scheduler that a new job has been submitted. It contains
+information about the job type, id and specifications. We only consider jobs of
+type \textit{delay} to simplify the models. Delay jobs specifications boil down
+to the delay length, to which we add resource requests.
+
+\paragraph{JOB\_COMPLETED}
+notifies the scheduler that a job has ended, specifying the reason for it. We
+only consider situations where all jobs complete correctly. Their state is then
+always COMPLETED\_SUCCESSFULLY in our case.
+
+\paragraph{REQUESTED\_CALL}
+is an awnser to a CALL\_ME\_LATER event sent by the scheduler.
+
+\subsubsection{From the scheduler to Batsim}
+
+\paragraph{CALL\_ME\_LATER}
+is an incentive from the scheduler for Batsim to wake up at a certain
+timestamp. When the timestamp is reached in the simulation, Batsim will send a
+REQUESTED\_CALL to the scheduler. In our case, this particular exchange will
+serve as the base for time synchronisation between the scheduler and Batsim.
+
+\paragraph{EXECUTE\_JOB}
+is sent when the scheduler has made a decision. It contains the id of the job
+at stake and the id of the resources it has been scheduled to.
+
+\subsubsection{Bidirectional}
+
+\paragraph{NOTIFY}
+is used to send some information to the other peer. In our case, we use the
+NOTIFY containing no\_more\_static\_job\_to\_submit to determine if the
+simulation has ended: knowing that there are no more jobs susceptible to be
+scheduled allow us to fast forward to the end of the simulation, thus saving
+execution time.\\
+
+\subsection{Batsim integration with Kubernetes} \label{sec:imp_levels}
+
+Here are the options that were considered but not chosen.
+
+\subsubsection{In between the api and the kubelets}
+
+This is the lowest level option. We position the simulator so as to simulate
+just the infrastructure and avoid tampering with Kubernetes resource
+management, which is done in their API. This approach would allow us to
+effortlessly use any Kubernetes scheduler once their API is supported by
+Batkube, and potentially produce the most accurate results. However,
+interactions between the kubelets and the API are not documented because the
+typical user is not supposed to have to deal with this part of Kubernetes. This
+would hinder the development of Batkube because a reverse engineering process
+would be required beforehand to understand the intricacies of internal
+Kuberenetes exchanges.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/architecture-as-kubelets.png}
+	\caption{Mocking the cluster itself.}
+	\label{fig:mock_nodes}
+\end{figure}
+
+\subsubsection{Custom client-go}
+
+Most Kubernetes schedulers rely on
+client-go\footnote{https://github.com/kubernetes/client-go}, which is a Go
+client for the api-server. It is a library implementing various tools to help
+schedulers converse with the API. By altering this client and patching
+schedulers so they use our client instead, we can make it exchange with Batsim
+instead of the API. 
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.8]{imgs/custom-go-client.png}
+	\caption{Custom Go client to redirect scheduler communications to Batsim}
+	\label{fig:custom-go-client}
+\end{figure}
+
+Contrary to the kubelets, client-go is a user interface and therefore it is
+documented, facilitating reverse engineering of its source code. Still, it
+represents thousands of lines of code and altering it to our needs would not be
+an easy feat.  The other drawback to this approach is that Batkube would only
+support schedulers written in Go and making use of client-go, although this
+should not be an issue as the only kubernetes scheduler we could find that does
+not rely on client-go is a toy scheduler written in bash \cite{bash-scheduler}.
+
+\subsubsection{Partial reimplementation of the API}
+
+Re-implementing the API offers a middle ground between the low level and
+undocumented solution of the mock nodes, and the higher level and technically
+challenging solution of a client-go fork. Again, there are several options here.
+
+A partial reimplementation of the API would save us the task of building a new
+API from the ground up. However this would imply digging deep into the
+api-server code in order to understand how the api is organized and what code
+we would have to alter. In the end, it is easier to simply build a new API,
+since there are tools to help us generate it from its specification.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.8]{imgs/partial-reimplem.png}
+	\caption{Partial reimplementation of the api-server.}
+	\label{fig:partial_reimp}
+\end{figure}
+
+\subsection{Time interception: the C library approach}
+
+An attempt was first made to patch a custom C library, which is the lowest level
+solution. Going for the low level solution would truly redirect all calls to
+machine time which is something we can not guarantee with the second option, as
+we explain in section \ref{sec:patch-scheds}. This approach proved challenging
+due to circular dependency issues and was ultimately abandoned. We opted for
+the second option which consist of modifying Go source code, which requires
+some additional work to patch the schedulers but was actually easier to
+implement.
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.5]{imgs/time-hijack-C.png}
+	\caption{Option A: patching the C library}
+	\label{fig:patch-C}
+\end{figure}
+
+\section{Batkube features}
+
+At the time this paper is written, Batkube is in a very early state. The
+objective of this work is to establish whether it is possible or not to
+implement such interface, and what the time synchronization would imply for the
+Kubernetes scheduler.
+
+Therefore, Batkube only supports 
+
+TODO: Clearly state what Batkube is capable of, and what it does not do. This
+helps describing only the parts of the tools we use while leaving the rest for
+the reader to look for on official documentation.
