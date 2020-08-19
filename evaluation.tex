@@ -7,7 +7,9 @@ necessary. Still, even though the underlying models are sound, Batkube adds a
 considerable overhead to Batsim because of the time synchronization between the
 simulator and the scheduler. We want to verify to what extent time manipulation
 impacts the scheduler behavior, and also that Batkube's fake Kubernetes API
-mimics the real API well enough to let the scheduler run as expected.
+mimics the real API well enough to let the scheduler run as expected. We then
+conducted some validation experiments with simple workloads to verify that the
+scheduler was correctly making its decisions.
 
 In the next sections, we present the workloads and platforms we chose to study,
 how we conducted experiments on a real cluster, and a study on Batkube's
@@ -17,20 +19,24 @@ parameters and their effect on the outputs.
 
 The entirety of the experiments are done with the default Kubernetes scheduler
 \textbf{kube-scheduler} release \textbf{v1.19.0.rc-4} (commit 382107e6c84).
-This choice was made because it was the scheduler used during development, and
-because supporting another scheduler would mean more development time which we
-could not afford. Still, it is sufficient to experiment with the simulator and
-verify the scheduler's behavior in the simulation. All scripts used to run the
-experiment, process the workloads and generate the graphs present in this
-report -- along with some results -- are available on
+This choice was made because it is the standard choice for Kubernetes and
+therefore the most commonly used scheduler in the industry, and because
+supporting another scheduler would mean more development time which we did not
+have. Still, it allowed us to conduct experiments to verify that the scheduler
+behavior was not altered by Batkube.  All scripts used to run the experiment,
+process the workloads and generate the graphs present in this report -- along
+with some results -- are available on
 \textit{batkube-test}\footnote{github.com/oar-team/batkube-test} repository.
 
 \subsection{Real experimental testbed}
 
 In order to validate the simulator results we then need to compare it against
 workloads run on a real cluster. For reproducibility and simplicity sake, we
-choose to validate the simulator with an emulated cluster run in
-containers.\\
+choose to validate the simulator with an emulated cluster run in containers. We
+use k3s, which is a lightweight version of Kubernetes (k8s). It has all the
+essential features of Kubernetes we would need and has become a standard in the
+industry whenever administrators do not wish to run fully fledged versions of
+Kubernetes.\\
 
 \begin{figure}[H]
 	\centering
@@ -40,13 +46,14 @@ containers.\\
 \end{figure}
 
 Figure \ref{fig:emulated-expe} illustrates how this is done. First, we create a
-k3s cluster run using docker-compose -- \texttt{start-cluster.sh} is a helper
-script made for this. Then, a Go script which takes a workload as an input
-submits the jobs at the right time and writes the ouputs to csv files -- which
-have the same format as Batsim's csv output files. We run each workloads 10
-times in order to get statistically meaningful results, except for the
-realistic workload which we only run one time because it is already 10 hours
-long.
+k3s cluster run using docker-compose, which is a tool enabling us to
+conveniently create one or several network of containers. Our cluster contains
+one master node and several workers which will run our pods. Then, a Go script
+which takes a Batsim workload as an input submits the jobs at the right time,
+watches the cluster state regularly, and writes the ouputs to csv files --
+which have the same format as Batsim's csv output files. We run each workloads
+10 times in order to get statistically meaningful results, except for the
+realistic workload which we only run once because it is already 10 hours long.
 
 The emulated cluster is limited in terms of variety and capacity. First,
 \texttt{start-cluster.sh} only allows the nodes to have the same amount of
@@ -75,8 +82,7 @@ just do not wish to add this other layer of complexity to our experiments.
 	\item A \textit{spaced} workload, where jobs of the same nature are
 		submitted at regular intervals.  200 delays with duration 170s,
 		and requesting 1 cpu are submitted every 10s.
-	\item A \textit{realistic} workload, which is extracted from a larger
-		trace of a real system.
+	\item A \textit{realistic} workload, which is a trace extracted from the  Karlsruhe Institue of Technology ForHLR II System.
 \end{itemize}
 
 The first two workloads are straight forward and could be generated with the
@@ -90,19 +96,19 @@ also works as a workload preprocessor, although we want to process SWF files
 very specifically to suit our needs which is why a custom script was
 implemented.
 
-First, a trace in standard
-workload format (swf) was obtained on a web
+First, a trace in standard workload format (swf) was obtained on a web
 archive\footnote{https://www.cs.huji.ac.il/labs/parallel/workload/logs.html}.
-The chosen workload was \texttt{KIT-FH2-2016-1.swf} because it is the most
-recent and is relatively lightweight. Secondly,
-\texttt{evalys}\footnote{https://github.com/oar-team/evalys} allowed us to
-extract a subset of this workload lasting for a given period of time and with a
-given mean utilization of the resources. We chose a period of 10h with 80\%
-utilization of the resources so as to keep reasonable experiment durations --
-Later on we experiment with larger workloads to test out Batkube's limits in
-terms of scalability.  The third step is translating this extracted workload to
-a \texttt{json} file that can be read by Batsim, which is done with a script
-written in Go.
+The chosen workload was \texttt{KIT-FH2-2016-1.swf} (we give the file name for
+the reader to find the workload on the archives) because it is the most recent
+and is relatively lightweight. It is composed of 114,355 jobs spanning over 19
+months. Secondly, \texttt{evalys}\footnote{https://github.com/oar-team/evalys}
+allowed us to extract a subset of this workload lasting for a given period of
+time and with a given mean utilization of the resources. We chose a period of
+10h with 80\% utilization of the resources so as to keep reasonable experiment
+durations -- Later on we experiment with larger workloads to test out Batkube's
+limits in terms of scalability.  The third step is translating this extracted
+workload to a \texttt{json} file that can be read by Batsim, which is done with
+a script written in Go.
 
 After extracting this subset, we are left off with a workload containing jobs
 spanning up to 45h and using up to 24048 cpu (or cpu cores), which is undoable
@@ -111,8 +117,12 @@ cpu usage, as we are limited in cpu by the host machine. This is done during
 the translation to the \texttt{json} format. The durations are trimmed down to
 a maximum of one hour and the cpu usages are normalized so the maximum amount
 of cpu requested equals the amount of cpu available per node on the host
-machine. Otherwise, the job would be unschedulable which would not present much
-interest.
+machine. Otherwise, the job would not be schedulable which would not present
+much interest. We end up with a trace composed of 39 jobs spanning over 10
+hours, with a maximum job length of one hour and cpu usage ranging from 0
+(excluded) to 5.9 (even though the host machine had 6 cores, Kubernetes
+scheduler did not allow for a job to be scheduled on a node it would use 100\%
+resources of).
 
 \subsection{Studied platforms}
 
@@ -213,7 +223,7 @@ reception of a message, and the value of the timeout is 20ms, Batkube will
 receive the decision on the next cycle which may happen several dozens of
 seconds later (depending on the \textit{maximum simulation time step} value).
 On the other hand, a \textit{timeout value} too large will induce longer
-simulation times unnecessarily. Indeed, once the simulator was given enough
+simulation times. Indeed, once the simulator was given enough
 time to process a message, any time following is spent idling. We want to
 measure which \texttt{timeout value} is just enough for the scheduler to be
 able to make a response without spending any time idling.
@@ -337,7 +347,7 @@ define accuracy as one on the euclidean distance between emulated and simulated
 makespan and mean waiting time: \[\frac{1}{\sqrt{(makespan_{sim} -
 	makespan_{emu})^2 + (waitingtime_{sim} - waitingtime_{emu})^2}}\]
 
-\section{Validation of the simulator outputs}
+\section{Deviation of the simulation with reality}
 
 TODO: With default parameters (timeout TBD with experiments results, max time step same, min delay 0), compare simulated and emulated results. 
 
