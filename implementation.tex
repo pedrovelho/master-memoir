@@ -222,6 +222,8 @@ TODO: Talk about Kubernetes schedulers. What they are based on, how they communi
 
 \section{General architecture of Batkube and its integration with Kubernetes and Batsim}
 
+TODO: move the parts where I explain what we did not do to the appendix
+
 \subsection{Integration with Kubernetes}
 
 In order to adapt Kubernetes schedulers for use with Batsim we need to position
@@ -368,6 +370,8 @@ Kubernetes nodes.
 
 \section{Time interception} \label{sec:time-hijack}
 
+TODO: same remark as earlier, move the C implementation part in the appendix.
+
 Kubernetes schedulers are not event based schedulers. They constantly check on
 the cluster state and make decisions accordingly, therefore they are based on
 machine time to make their decisions. However, in order to have correct
@@ -375,7 +379,7 @@ simulations, the scheduler needs to be synchronized with simulation time. We
 then need to intercept all calls to machine time to redirect them to the
 simulator. There are two approaches to this: either we patch the C library used
 by Go (figure \ref{fig:patch-C}) and compile Go using our library, or we patch
-Go's time library (\ref{fig:patch-Go}) and then patch the scheduler so it uses
+Go's time library (\ref{fig:patch-go}) and then patch the scheduler so it uses
 our library instead of the official one.
 
 \begin{figure}[]
@@ -414,73 +418,101 @@ caller once this duration is elapsed. Timers can be reset, modified or deleted
 after initialization, which make their implementation tricky in a parallel
 computing context. Tickers are essentially the same structures as timers,
 except they regularly notify the caller with the given period of time instead
-of exiting like timers would.
+of exiting after they fire like timers would.
 
 In order to explain batsky-go algorithms as clearly as possible we need to
-provide some context about Go channels, which are structures made for running
-code in parallel. Go allows the user to run multi threaded code easily thanks
-to its \textbf{go routines}. Whenever in the code the user may create a routine
-which will create a new thread and launch the given code parallel to the
-encapsulating function. Essentially, this creates a child process.  Go channels
-are \textit{``a typed conduit through which you can send and receive values
-with the channel operator, <-''}\footnote{source:
+provide some context about Go channels. Go allows the user to run multi
+threaded code easily thanks to its \textbf{go routines}. These routines allow
+the user to run code in parallel whithout requiring any setup by simply calling
+\texttt{go func()} where \texttt{func()} is a function.  It creates a new
+thread and launches the given code in parallel with the encapsulating function.
+Essentially, this creates a child process.  Go \textit{channels} are
+\textit{``a typed conduit through which you can send and receive values with
+the channel operator, <-''}\footnote{source:
 https://tour.golang.org/concurrency/2}
 
-\begin{figure}[H]
+\begin{figure}[]
 	\begin{minted}{go}
 ch <- v    // Send v to channel ch.
 v := <-ch  // Receive from ch, and
            // assign value to v.
    \end{minted}
    \caption{Usage of a Go channel}
-   \ref{fig:go-channel}
+   \label{fig:go-channel}
 \end{figure}
+
+A channel can be shared amongst several process and allow several pieces of
+code run in parallel to share data, without having to implement any mutex. By
+default sends and receives on a channel are blocking operations. If the two
+lines from figure \ref{fig:go-channel} were to be executed one after the other,
+the program would remain stuck on the first line, as it would wait for some
+process to receive the data sent on \texttt{ch} which only happens on the
+second line.\\
 
 \SetKwInput{KwInput}{Input}
 \SetKwInput{KwOutput}{Output}
 
-\begin{algorithm}[H]
+\begin{algorithm}[]
 \DontPrintSemicolon
 \KwResult{Current simulation time}
-\KwInput{d: timer duration, req: requests channel, res: response channel map}
+\KwInput{req: requests channel, resMap: response channel map}
 \KwOutput{now : simulation time}
 
 \If{requester loop is not running}{
 	go runRequesterLoop() \tcc{There can only be one loop runing at a time}
 }
 id = newUUID()\;
-m = newRequestMessage(d, id) \tcc{Requests are identified using uuids}
-resChannel = newChannel()\;
-res[id] = resChannel \tcc{A channel is associated with each request}
-req $<$- m \tcc{The code blocks here until request is handled}
-now = $<$-resChannel \tcc{The code blocks here until response is sent by the requester loop}
+res = newChannel()\;
+resMap[id] = res \tcc{A channel is associated with each request}
+req $<$- id \tcc{The code blocks here until request is handled}
+now = $<$-res \tcc{The code blocks here until response is sent by the requester loop}
 return now\;
 \caption{Time request (time.now())}
 \label{alg:now}
 \end{algorithm}
 
-\begin{algorithm}[H]
+Let us call \texttt{time.Now()} calls \textit{time requests}. Channels enable
+us to centralize time requests from multiple simultaneous callers in one place
+before forwarding all requests to Batkube. There are two parts to
+\texttt{batsky-go}. One is composed of the many requesters, and the other one
+is the loop centralizing requests and handling exchanges with Batkube which we
+will call ``the main loop''.  Figure \ref{alg:now} gives the new implementation
+of time.Now(), which is the ``requester'' part. Each request is identified
+using a unique id to keep track of the pending requests that are waiting for a
+response. \texttt{resMap} is a thread safe channel map that is shared amongst
+the requesters and the main loop containing (id, response channel) key-value
+pairs. When a new request is made, a new entry is created on this map and the
+requester will wait for a response on the newly created channel, associated
+with its id. All requests are sent to a unique channel \texttt{req}. To make a
+new request, the requester simply sends its id to this channel.
+
+\begin{algorithm}[]
 \DontPrintSemicolon
-\KwInput{req: requests channel, res: response channel map}
+\KwInput{req: requests channel, resMap: response channel map}
 \While{Batkube is not ready} {
 	wait\;
 }
 requests = []request\;
 \While{req is not empty} {
-	m = $<$- req \tcc{Non blocking receive}
-	requests = append(requests, m)\;
+	id = $<$- req \tcc{Non blocking receive}
+	requests = append(requests, id)\;
 }
-sendToBatkube(requests) \tcc{Only requests with duration > 0 are actually sent. Batkube will always anwser.}
-now = responseFromBatkube()\;
-\For{m in range requests} {
-	res[m.id] $<$-now \tcc{The caller continues execution upon reception}
+now = getCurrentTimeFromBatkube()\;
+\For{m in requests} {
+	resMap[id] $<$-now \tcc{The caller resumes execution upon reception}
 }
 
 \caption{Requester loop}
 \label{alg:reqLoop}
 \end{algorithm}
 
-
+Each iteration of the main loop first waits for a signal from Batkube
+indicating that the broker is ready to handle the time request. That way, we
+make sure we don't miss out on any request because the requests accumulate on
+the \texttt{req} channel in the mean time, while minimizing potential downtime
+because we know Batkube will answer instantly. Once we get the signal that
+Batkube is ready all is left to do is retrieve the ids from our requesters,
+retrieve the time from the simulation, and answer each individual request.
 
 \subsection{Patching schedulers} \label{sec:patch-scheds}
 
