@@ -513,22 +513,87 @@ the \texttt{req} channel in the mean time, while minimizing potential downtime
 because we know Batkube will answer instantly. Once we get the signal that
 Batkube is ready all is left to do is retrieve the ids from our requesters,
 retrieve the time from the simulation, and answer each individual request.
+Figure \ref{fig:time-interception} presents a typical exchange between the
+scheduler, batsky-go and Batkube.
+
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.43]{imgs/requester_broker_no_CML.png}
+	\caption{Exchange breakdown between batsky-go and Batkube.}
+	\label{fig:time-interception}
+\end{figure}
 
 \subsection{Patching schedulers} \label{sec:patch-scheds}
 
-TODO: Explain the AST approach and how it is not a plain sed. (conflict in the
-resources used, we have to replace all calls to time's \textbf{functions} and
-leave the \textbf{objects} as they are).
+We have developed a tool for patching the schedulers, so they use our library
+instead of the standard \texttt{time} library. This tool is called
+\texttt{batsky-go-installer} and is available on github alongside
+Batkube\footnote{github.com/oar-team/batsky-go-installer}.
+
+Our approach replaces all calls to the functions of the \texttt{time} library
+while leaving the objects as is to ensure compatibility. In that regard, our
+approach makes use of standard \texttt{time} objects instead of redefining new
+custom objects, which would break compatibility with the rest of the code. It
+makes use of Go Abstract Syntax Tree (AST) to go through the source files and
+replace the appropriate symbols, while adding the import to our module whenever
+it is necessary. Go \texttt{ast} package make it very convenient to search and
+replace symbols in the syntax tree.
 
 \section{Time synchronization}
 
-TODO: explanatory text on this diagram. Explain the different parameters:
-timeout, max \& base timestep \& backoff multiplier, min delay, scheduler crash
-detection, fast forward on no pending jobs.
-\begin{figure}[H]
+Synchronization of the time between the scheduler and the simulator is the
+critical part of Batkube, because this is where we make compromises between the
+speed and the accuracy of the simulation. The scheduler is not event-based and
+therefore we can never know for sure when it will send a decision. Therefore we
+need to listen to the scheduler as much as we can, but while we do so the
+simulation advances slowly. In fact, whenever we listen to the scheduler and
+wait for a decision we synchronize machine time and simulation time so the
+scheduler gets a time that advances as it would if it was not simulated. This
+ensures that the internals of the scheduler function correctly. We could speed
+up this time to increase simulation speed and study the effect it has on the
+scheduler, but we have to leave this for future work unfortunately. During that
+time Batsim is blocked and waits for a message from the decision process. When
+we give back priority to Batsim time stops advancing on the scheduler side,
+effectively suspending the decision process. At this time Batsim advances
+forward in the simulation and replies with new events. Figure
+\ref{fig:time_sync} gives a breakdown of the exchanges between Batsim, Batkube
+and the scheduler with their associated times.
+
+\begin{figure}[]
 	\centering
-	\includegraphics[width=\textwidth]{imgs/lignes_de_temps.png}
+	\includegraphics[width=0.8\textwidth]{imgs/lignes_de_temps.png}
 	\caption{Time sync between the three components. The broker has to take
 	into account both machine time and simulation time.}
 	\label{fig:time_sync}
 \end{figure}
+
+The simulator can be tuned with several parameters which have various effect on
+the simulation. We study those effects in section \ref{sec:params-eval} To
+limit the time we spend waiting for the scheduler we implemented a timeout
+policy. The \textit{timeout value} defines the maximum amount of time we spend
+waiting for a scheduler decision: after this amount of time we get back to
+Batsim to go forward in the simulation.
+
+%\begin{algorithm}[H]
+%	\caption{Synchronization of the time}
+%	\label{alg:time-sync}
+%	\DontPrintSemicolon
+%	\KwInput{simulationTimeout: time.Duration; incrementTimeStep: time.Duration; incrementValue: time.Duration}
+%	stopWaitingForMessages := false\;
+%	incremented := 0\;
+%	\While{!stopWaitingForMessages}{
+%		getSchedulerDecisions()\;
+%		\If{decisionReceived() or incremented >= simulationTimeout}{
+%			stopWaitingForMessages = true
+%		}\ElseIf{timeSinceLastIncrement() > incrementTimeStep}{
+%			\tcc{this last condition is here to slow down this process and give time for the scheduler to take its decisions}
+%			now = now + incrementValue\;
+%			incremented = incremented + incrementValue
+%		}
+%	}
+%	addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + incrementValue}
+%\end{algorithm}
+
+TODO: explanatory text on this diagram. Explain the different parameters:
+timeout, max \& base timestep \& backoff multiplier, min delay, scheduler crash
+detection, fast forward on no pending jobs.
