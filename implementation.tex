@@ -557,7 +557,7 @@ we give back priority to Batsim time stops advancing on the scheduler side,
 effectively suspending the decision process. At this time Batsim advances
 forward in the simulation and replies with new events. Figure
 \ref{fig:time_sync} gives a breakdown of the exchanges between Batsim, Batkube
-and the scheduler with their associated times.
+and the scheduler with their associated times.\\
 
 \begin{figure}[]
 	\centering
@@ -568,11 +568,69 @@ and the scheduler with their associated times.
 \end{figure}
 
 The simulator can be tuned with several parameters which have various effect on
-the simulation. We study those effects in section \ref{sec:params-eval} To
-limit the time we spend waiting for the scheduler we implemented a timeout
-policy. The \textit{timeout value} defines the maximum amount of time we spend
-waiting for a scheduler decision: after this amount of time we get back to
-Batsim to go forward in the simulation.
+the simulation. We study those effects in section \ref{sec:params-eval}.
+
+\begin{itemize}[leftmargin=*]
+	\item To limit the time we spend waiting for the scheduler we
+		implemented a timeout policy. The \textit{timeout value}
+		defines the maximum amount of time we spend waiting for a
+		scheduler decision: after this amount of time we get back to
+		Batsim to go forward in the simulation. Whenever we receive a
+		decision from the scheduler, we immediately give back control
+		to Batsim by sending it the decision. 
+	\item Also, we added the \textit{minimum delay} parameter, which is
+		analogous to \textit{timeout value}. It defines the minimum
+		amount of time we remain in Batkube each cycle: we will always
+		wait at least this amount of time for the scheduler even though
+		we already received a scheduling decision. This parameter was
+		implemented because we observed incorrect behavior of the
+		scheduler -- it crashed -- when Batkube responded too quickly.
+		However, this issue seems resolved with latest updates of the
+		Kubernetes scheduler and it seems we don't need this mechanic
+		anymore. It might still be useful for other schedulers or
+		earlier versions of the kube-scheduler which is why we keep it
+		in the simulator.
+	\item Whenever we block the scheduler to send a message to Batsim, the
+		latter supposedly advances the simulation as far as it desires.
+		This may impact the decision process because we can't know for
+		sure if the scheduler would have made a decision in the mean
+		time. If that is the case, this decision will be drastically
+		delayed or canceled. This is why we only allow Batsim to jump
+		forward in time up to a certain \textit{simulation timestep}.
+		This time step varies between \textit{base-simulation-timestep}
+		and \textit{max-simulation-timestep}: it starts at the base
+		timestep and increases following a backoff policy. This policy
+		is implemented as follow: the time step is multiplied by a
+		factor every time the scheduler did not provide any decision,
+		and reset when we receive a decision from the scheduler. This
+		ensures Batsim does not jump to much forward in time while
+		increasing simulation speed when the scheduler does not have
+		any decision to make. We tell Batsim to ``wake up'' at certain
+		times thanks to CALL\_ME\_LATER (CML) events. When Batsim
+		receives such events, it replies with a REQUESTED\_CALL at the
+		timestamp specified in the CML event.
+	\item To speed up the simulation in its last steps, we implemented a
+		parameter allowing Batsim to jump forward in time as much as
+		desired when no jobs or in \textit{pending} state, that is to
+		say waiting to be scheduled. We allow such behavior when the
+		scheduler is not supposed to make any decision when no jobs are
+		to be scheduled, which is the case with the kube-scheduler.
+		This would lead to incorrect simulations with more advanced
+		schedulers implementing features such as \textit{preemption},
+		which allows schedulers to kill running jobs in order to make
+		room for large jobs, to resume the jobs that were killed later.
+		This improves the overall makespan of the simulation.
+	\item To improve the experiments stability we implemented a feature to
+		detect scheduler crashes. Despite all our efforts at making
+		simulation as stable as possible, simulated time still causes
+		some crashes on the scheduler side. We detect such crashes and
+		exit Bakube with an error code when it happens. A crash is
+		detected when the scheduler had to make a decision but did not
+		react for some time (that we can configure, independently of
+		the \textit{timeout value}). We consider that the scheduler has
+		to make a decision when no jobs are running and some jobs are
+		pending, waiting for a decision.
+\end{itemize}
 
 %\begin{algorithm}[H]
 %	\caption{Synchronization of the time}
@@ -593,7 +651,3 @@ Batsim to go forward in the simulation.
 %	}
 %	addCallMeLater() \tcc{Add a CALL\_ME\_LATER event with timestamp now + incrementValue}
 %\end{algorithm}
-
-TODO: explanatory text on this diagram. Explain the different parameters:
-timeout, max \& base timestep \& backoff multiplier, min delay, scheduler crash
-detection, fast forward on no pending jobs.
