@@ -43,3 +43,55 @@ Limits: explain how dirty the resource management system is (non
 thread safe, stored in memory, little hacks for the resource version) and
 briefly write on how it induces problems for the scheduler (over allocating
 resources) (we talk about this in the evaluation part).
+
+\begin{figure}
+	\begin{minted}{js}
+{
+  "now": 1024.24,
+  "events": [
+    {
+      "timestamp": 1000,
+      "type": "EXECUTE_JOB",
+      "data": {
+        "job_id": "workload!job_1234",
+        "alloc": "1 2 4-8",
+      }
+    },
+    {
+      "timestamp": 1012,
+      "type": "EXECUTE_JOB",
+      "data": {
+        "job_id": "workload!job_1235",
+        "alloc": "12-100",
+      }
+    }
+  ]
+}
+\end{minted}
+\caption{Example of a Batsim message}
+\label{fig:batmsg_ex}
+\end{figure}
+
+
+\begin{figure}
+	\begin{minted}{js}
+{
+    "nb_res": 1,
+    "jobs": [
+	{"id":"1", "subtime":0, "res": 1, "profile": "delay10"},
+	{"id":"2", "subtime":3.4, "res": 1, "profile": "delay10"}
+    ],
+    "profiles": {
+	"delay10": {
+	    "type": "delay",
+	    "delay": 10,
+	    "scheduler": "default",
+	    "cpu": "1.5",
+	    "memory": "500Mi"
+	}
+    }
+}
+	\end{minted}
+	\caption{Example of a Batsim workload}
+	\label{fig:bat_wl_ex}
+\end{figure}

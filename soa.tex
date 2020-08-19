@@ -66,16 +66,20 @@ topology, and hardware) which is impossible to do with a real computer as we
 can not change the hardware of those infrastructures.
 
 One solution to these issues is running \textit{in vitro} studies, that is to
-say run an emulation of the system. This resolves the issue of reproducibility,
-however the matter of the cost in energy and time remains. If anything,
-emulation aggravates these costs: emulation adds a consequent overhead to the
-system and running the same workloads in reasonable time requires access to a
-system of (at least) equivalent size.  This cost is exacerbated by the many
-iterations of a same experiment one must conduct in order to get statistically
-significant results. Workloads submitted by real users can last from hours to
-months and have substantial costs in energy: the means required to run them are
-too great and research to optimize or simply study these systems can not
-justify this waste of resources.
+say run an emulation of the system. With this approach the system is reproduced
+using containers or virtual machines to run the application as if it was run on
+the real system. MicroGrid \cite{microgrid} is one such emulator and allows the
+user to emulate an entire grid system to study the interaction between
+applications, middleware, resources and networks. This resolves the issue of
+reproducibility, however the matter of the cost in energy and time remains. If
+anything, emulation aggravates these costs: emulation adds a consequent
+overhead to the system and running the same workloads in reasonable time
+requires access to a system of (at least) equivalent size.  This cost is
+exacerbated by the many iterations of a same experiment one must conduct in
+order to get statistically significant results.  Workloads submitted by real
+users can last from hours to months and have substantial costs in energy: the
+means required to run them are too great and research to optimize or simply
+study these systems can not justify this waste of resources.
 
 \subsubsection{\textit{in silico} studies, or simulation}
 
@@ -227,24 +231,20 @@ schedulers.
 
 Batsim\cite{dutot:hal-01333471} is a distributed system simulator built upon
 the SimGrid framework. Its main objective is to enable the study of RJMS
-without the need to implement a custom simulator, by providing a universal text
-based interface. \\
+without the need to implement a custom simulator, by decoupling the decision
+process from the simulator itself.\\
 
-It is entirely deterministic so at to make the studies easily reproducible.
-Its event-based models will provide the same results given the same inputs and
-decision process. Batsim also facilitates reproducibility through its
-user-defined inputs. Unlike other HPC or grid computing simulations that run on
+It is deterministic, allowing the exact reproduction of experiments.  Its
+event-based models will provide the same results given the same inputs and
+decision process.  Unlike other HPC or grid computing simulations that run on
 existing application traces, Batsim takes a user defined workload as an input.
-As a consequence, the user has no concerns such as intellectual property on
-application traces and may provide all his experiments materials and
-environment.  Another advantage of this system is that the user can adapt the
-workload depending on its needs, to achieve different levels of realism.
+This allows the user to fine tune workloads in order to study very specific
+issues and achieve different level of realism. In addition, it provides tools
+to translate workloads between its own format and the swf format, which is a
+commonly used structure for HPC workloads.
 
-Batsim, just like SimGrid, aims at being versatile. The common belief is that
-specialization is the key to achieving realistic results, however according to
-SimGrid this versatility is all but an obstacle to
-accuracy\cite{casanova:hal-01017319}: it is on the contrary the key to their
-results which are both scalable and accurate. Batsim computation platforms are
+Batsim, just like SimGrid, aims at being versatile. 
+Batsim computation platforms are
 SimGrid platforms meaning that theoretically, they may be as broad as SimGrid
 allows it. In reality any SimGrid platform is not a correct Batsim platform.
 Because Batsim aims at studying RJMS software, it requires a \textbf{master}
@@ -256,8 +256,8 @@ SimGrid models.
 Thanks to its own message interface Batsim is language agnostic which means
 that any RJMS can be plugged into it as long as it implements the interface.
 This property allows us to plug any scheduler we wish to Batsim, including
-Kubernetes schedulers, which allowed us to run simulations of Kubernetes
-clusters.
+Kubernetes schedulers, which allowed us to effectively run simulations of
+Kubernetes clusters.
 
 \section{Kubernetes in the context of Cloud Computing}
 
@@ -268,7 +268,8 @@ maintainability or scalability. In an attempt to automate this process
 developers started using virtual machines which enabled them to run their
 services regardless of physical infrastructure while having a better control
 over resource allocation.  This led to the concept of containers which takes
-the idea of encapsulated applications further than plain virtual machines.
+the idea of encapsulated applications further than plain virtual machines
+(Figure \ref{fig:container-evolution}).
 
 \begin{figure}[h]
 	\centering
@@ -303,10 +304,11 @@ speak of these containerized and modular applications as cloud native computing
 	and predictably with minimal toil.``}\footnote{\url{https://github.com/cncf/toc/blob/master/DEFINITION.md}}
 
 Kubernetes\footnote{\url{https://kubernetes.io/}} is the implementation of this
-general idea and was anounced at the same time as the CNCF. It aims at
-automating of the process of deploying, maintaining and scaling containerized
-applications. It is industry grade and is now the de-facto solution for
-container orchestration.
+general idea and was announced at the same time as the CNCF. It aims at
+automating the administration of a fleet of containers. Deployment and scaling
+(that is to say, replication of one same application to increase its
+availability) is described in yaml files and managed by Kubernetes.  It is
+industry grade and is now the de-facto solution for container orchestration.
 
 \subsection{HPC and Kubernetes}
 
@@ -378,22 +380,22 @@ containers are becoming more and more integrated in modern infrastructures.
 Not many projects exist on Kubernetes simulation or have been disclosed. We
 were able to find two projects that propose simulations of Kubernetes clusters.
 
-JoySim \cite{joysim} is a fully fledged Kubernetes simulator developoed in an
+JoySim \cite{joysim} is a fully fledged Kubernetes simulator developed in an
 industrial context. Simulations are based on synthetic events and their mock
-nodes simply simulate a resource usage without any underlying model. The
-strength of this simulator is its scalability which it obtains thanks to its
-very light weight simulated nodes. JoySim is aimed at studying the quality of
-the scheduling and its performance in complex scenarios by generating metrics
-such as resource usage and scheduling time. Although, to the best of our
-knowledge, it is not suited for batch scheduling and tackles more classic
-issues for Kubernetes such as services availability and resource utilization.
-The user may specify events to occur during the simulation in order to test out
-different scenarios. Unfortunately, while an open source released in planned,
-this piece of software is currently closed source.
+nodes simply simulate a resource usage. The strength of this simulator is its
+scalability which it obtains thanks to its very light weight simulated nodes.
+JoySim is aimed at studying the quality of the scheduling and its performance
+in complex scenarios by generating metrics such as resource usage and
+scheduling time. Although, to the best of our knowledge, it is not suited for
+batch scheduling and tackles more classic issues for Kubernetes such as
+services availability and resource utilization.  The user may specify events to
+occur during the simulation in order to test out different scenarios.
+Unfortunately, while an open source released in planned, this piece of software
+is currently closed source.
 
-k8s-cluster-simulator\cite{k8s-cluster-simulator} is an open source cluster
+k8s-cluster-simulator \cite{k8s-cluster-simulator} is an open source cluster
 simulator for evaluating schedulers, which originated from a end of studies
-project like this work. Like JoySim, it relies on simplistic models: pods are
+project like this work. Like JoySim, it relies on simple models: pods are
 submitted with certain resource requirements, for a certain amount of time. One
 can provide any scheduler implementation they want as long as they do so
 through their Go interface. This reduces the amount of schedulers that can be
@@ -403,19 +405,19 @@ implement an adaptive layer to support other schedulers.\\
 Two simulators are very close to Batsim in terms of capabilities and
 objectives, that is to say the study on scheduling policies.
 
-Alea2\cite{alea2} is a grid computer system simulator based on GridSim. Like
-Batsim, its \textit{ready-to-use} philosophy make it a fantastic simulator when
-one desires to experiment with different scheduling policies with little set up
-overhead. Because it is based on GridSim, it is all written in Java and is thus
-cross platform. Alea2 strength lies in its modularity: its object oriented
-paradigms make it very easily extensible and customizable. Unlike Batsim it
-does not offer a decoupling of the simulator and the decision process and
-therefore the user will have to rely on the implemented scheduling algorithms,
-although these algorithms cover the most standardly used scheduling policies.
-The user will have to implement other policies he would like to test out. The
-simulator handles inputs in the form of \textit{Standard Workloads Format
-(SWF)} or \textit{Grid Workloads Format (GWF)}. Batsim proposes a script to
-process SWF files into its own input format but does not handle them directly.
+Alea2\cite{alea2} is a grid computer system simulator based on GridSim. It is
+therefore written in Java and cross platform. Like Batsim, its
+\textit{ready-to-use} philosophy allow experimenting with different scheduling
+policies with little set up overhead.  Alea2 strength lies in its modularity:
+its object oriented paradigms make it very easily extensible and customizable.
+Unlike Batsim it does not offer a decoupling of the simulator and the decision
+process and therefore the user will have to rely on the implemented scheduling
+algorithms, although these algorithms cover the most standardly used scheduling
+policies.  The user will have to implement other policies he would like to test
+out. The simulator handles inputs in the form of \textit{Standard Workloads
+Format (SWF)} or \textit{Grid Workloads Format (GWF)}. Batsim proposes a script
+to process SWF files into its own input format but does not handle them
+directly.
 
 Accasim\cite{10.1007/978-3-319-73353-1_12} is a simulator for studying
 \textit{Workload Management Systems (WMS)} in HPC infrastructure. It is similar
@@ -429,10 +431,17 @@ events transmitted to the simulator. Accasim loads jobs incrementally and
 cleans them upon completion which reduces its memory usage compared to Batsim,
 which loads everything in memory at the start of the simulation.
 
-Both simulator outperform Batsim (\cite{10.1007/978-3-319-73353-1_12}),
-especially with large workloads because of its high memory usage that hinders
-the simulation speed.  However, both lack the decoupling between the resources
-and the scheduler that we need in order to plug Kubernetes schedulers onto it.
+What truly distinguishes Batsim from these simulators is the strong decoupling
+between the RJMS and the simulator, which allows us to experiment with RJMS
+software rather than only studying scheduling policies. This allows us to
+evaluate the scheduler computing needs or memory usage independently, as if it
+was running in real conditions. Performance wise, we cannot really compare
+Batsim with Alea and Accasim contrary to what is stated in
+\cite{10.1007/978-3-319-73353-1_12}.  Indeed, this study was realized with SWF
+workloads which can only depict delays. This is adapted to Accasim and Alea
+because their models are simple, but not to SimGrid models which are too
+advanced for this type of workload.  These simulators are not comparable
+because of the fundamental differences in their models.
 
 %NOTES
 %

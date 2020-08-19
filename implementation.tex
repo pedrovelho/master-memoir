@@ -1,11 +1,9 @@
 \chapter{Integrating the simulator into Kubernetes}
 
-\subsubsection{Problematic}
-
 Batsim is able to run simulations of any distributed system, to study any
 event-based scheduler that would implement its message protocol. Kubernetes is
 a piece of software where all its component, including the scheduler, revolve
-around a central API. Everything is then asynchronous as the API can be
+around a central API. Everything is asynchronous as the API can be
 accessed anytime by any component.
 
 The question that arises is, can we adapt Batsim to make it support Kubernetes
@@ -32,16 +30,15 @@ the reader to look for on official documentation.
 \section{Batsim concepts}
 
 A Batsim simulation is divided into two processes: Batsim itself and the
-decision process (the scheduler). Both process exchange via the ZeroMQ
-request-reply
-pattern\footnote{\url{http://zguide.zeromq.org/page:all\#Ask-and-Ye-Shall-Receive}}.
-As a consequence, the scheduler must be event based and implement Batsim's
-Protocol.
+decision process (the scheduler).  As a consequence, Batsim defines its own
+messaging protocol to be able to standardize exchanges with the scheduler. This
+protocol takes the form of a text based interface that conveys the events
+occuring during the simulation.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{imgs/batsim-sequence-diag.png}
-	\captionsource{Exchanges between Batsim and the scheduler}{https://batsim.readthedocs.io/en/latest/protocol.html}
+	\captionsource{Exchanges between Batsim and the scheduler.}{https://batsim.readthedocs.io/en/latest/protocol.html}
 	\label{fig:bati-seq-diag}
 \end{figure}
 
@@ -59,14 +56,14 @@ we do not support parallel jobs. Finally, Batsim proposes an energy model that
 we decided to ignore as well.\\
 
 Batsim takes one or several workload as inputs, which are json files containing
-jobs definitions. The jobs are defined with the following inputs.  First, they
-are identified by an \textit{id} which is unique within each workload and are
-submitted at a time defined by the \textit{subtime} field. The \textit{res}
-field states the number of resources each job requires, although we don't use
-this field because we can't specify \textit{which} resource we require. Instead
-we pass resource requests as optional parameters. We support the additional
-fields \textit{cpu} which has a minimum value of 100m cpu just like Kubernetes
-cpu
+jobs definitions. Figure \ref{fig:bat_wl_ex} gives an example of such workload.
+The jobs are defined with the following inputs.  First, they are identified by
+an \textit{id} which is unique within each workload and are submitted at a time
+defined by the \textit{subtime} field. The \textit{res} field states the number
+of resources each job requires, although we don't use this field because we
+can't specify \textit{which} resource we require. Instead we pass resource
+requests as optional parameters. We support the additional fields \textit{cpu}
+which has a minimum value of 100m cpu just like Kubernetes cpu
 requests\footnote{https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/}
 and \textit{memory} which also complies with Kubernetes compute resource
 definitions.  Jobs follow a certain \textit{profile} that defines the nature of
@@ -79,73 +76,24 @@ schedulers\footnote{https://kubernetes.io/docs/tasks/extend-kubernetes/configure
 we support the field \textit{scheduler} which contains the name of the
 scheduler the job should be scheduled with.\\
 
-\begin{figure}
-	\begin{minted}{js}
-{
-    "nb_res": 1,
-    "jobs": [
-	{"id":"1", "subtime":0, "res": 1, "profile": "delay10"},
-	{"id":"2", "subtime":3.4, "res": 1, "profile": "delay10"}
-    ],
-    "profiles": {
-	"delay10": {
-	    "type": "delay",
-	    "delay": 10,
-	    "scheduler": "default",
-	    "cpu": "1.5",
-	    "memory": "500Mi"
-	}
-    }
-}
-	\end{minted}
-	\caption{Example of a Batsim workload}
-	\label{fig:bat_wl_ex}
-\end{figure}
-
 Batsim messaging interface is based on its protocol. Each message is composed
 of the field \textit{timestamp} which contains the current simulation time, as
 well the field \textit{events} which is a list of events either from Batsim to
 the scheduler, or from the scheduler to Batsim. Figure \ref{fig:batmsg_ex}
 depicts a standard message sent from the scheduler to Batsim.
 
-\begin{figure}
-	\begin{minted}{js}
-{
-  "now": 1024.24,
-  "events": [
-    {
-      "timestamp": 1000,
-      "type": "EXECUTE_JOB",
-      "data": {
-        "job_id": "workload!job_1234",
-        "alloc": "1 2 4-8",
-      }
-    },
-    {
-      "timestamp": 1012,
-      "type": "EXECUTE_JOB",
-      "data": {
-        "job_id": "workload!job_1235",
-        "alloc": "12-100",
-      }
-    }
-  ]
-}
-\end{minted}
-\caption{Example of a Batsim message}
-\label{fig:batmsg_ex}
-\end{figure}
-
-Batkube's features are limited because we focused on building a working proof
+Batkube features are limited because we focused on building a working proof
 of concept rather than a fully fledged Kubernetes simulator. This is why only
 consider a subset of these messages that we present here. More information on
 Batsim's protocol is available on Batsim
 documentation\footnote{https://batsim.readthedocs.io/en/latest/protocol.html}
 
+TODO: Adrien's view on this section is that it is not necessary and that a link to the doc is sufficient.
+
 \subsubsection{From Batsim to the scheduler}
 
 \paragraph{SIMULATION\_BEGINS}
-contains mostly information about the available resources in the cluster, with
+contains information about the available resources in the cluster, with
 Batsim's configuration.
 
 \paragraph{SIMULATION\_ENDS}
@@ -205,6 +153,15 @@ that can be computed from this output:
 		at which the job was scheduled. We will see later that these
 		two times do not correspond in Kubernetes.)
 \end{itemize}
+
+These metrics were chosen because in our case, they are representative of the
+accuracy of the simulation. Time synchronization (see section
+\ref{sec:time-hijack}) may introduce delays in the scheduling decision, thus
+increasing the overall makespan and mean waiting time of the simulation.
+%Experiments showed that the makespan does not vary much from simulation to
+%simulation, but due to Batkube simulations stochastic nature the decisions
+%taken by the scheduler may vary from experiment to experiment, thus introducing
+%variations in the mean waiting time.
 
 \section{Kubernetes concepts}
 
@@ -464,11 +421,9 @@ provide some context about Go channels, which are structures made for running
 code in parallel. Go allows the user to run multi threaded code easily thanks
 to its \textbf{go routines}. Whenever in the code the user may create a routine
 which will create a new thread and launch the given code parallel to the
-encapsulating function. Essentially, this creates a child process -- and
-introduces the risk of creating fork
-bombs\footnote{https://github.com/aaronryank/fork-bomb/blob/master/fork-bomb.go}.
-Go channels are \textit{``a typed conduit through which you can send and receive
-values with the channel operator, <-''}\footnote{source:
+encapsulating function. Essentially, this creates a child process.  Go channels
+are \textit{``a typed conduit through which you can send and receive values
+with the channel operator, <-''}\footnote{source:
 https://tour.golang.org/concurrency/2}
 
 \begin{figure}[H]
