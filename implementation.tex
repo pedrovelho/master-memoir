@@ -1,26 +1,26 @@
 \chapter{Integrating the simulator into Kubernetes}
 
-Batsim is able to run simulations of any distributed system, to study any
-event-based scheduler that would implement its message protocol. Kubernetes is
+Our ultimate goal is to implement a Batsim simulator for Kubernetes schedullers.
+Batsim is able to run simulations of distributed systems, aiming at studying any
+event-based scheduler that relies on message based protocol. Kubernetes is
 a piece of software where all its component, including the scheduler, revolve
 around a central API. Everything is asynchronous as the API can be
 accessed anytime by any component.
 
-The question that arises is, can we adapt Batsim to make it support Kubernetes
+The questions that arise are: ``Can we adapt Batsim to make it support Kubernetes
 schedulers? Is it possible to implement an adaptive layer between a synchronous
-event based simulator like Batsim and a scheduler implemented following the
-asynchronous paradigms of APIs? To answer these issues we developed
+event based simulator like Batsim? And if yes can we have a scheduller following the
+asynchronous paradigms of APIs?'' To answer these issues we developed
 Batkube\footnote{github.com/oar-team/batkube}, which is an adaptive interface
 to Batsim for Kubernetes schedulers.
 
-It will follow that in order to do so, we re-implemented an API following
-Kubernetes specifications and intercepted the scheduler's time to synchronize
+In order to do so, we re-implemented an API following
+Kubernetes specification and intercepted the scheduler's time to synchronize
 it with the simulation time. This allows us to simulate lengthy workloads in a
 short period using a scheduler otherwise supposed to rely on ``real'' machine
 time. We first describe some technical concepts about Kubernetes and Batsim,
 and then describe how we re-implemented the API, intercepted the time, and
-handled the synchronization of the different times between Batsim and the
-scheduler.
+handled the synchronization between Batsim and the scheduller.
 
 \section{Batsim concepts}
 
@@ -47,22 +47,22 @@ unknown reasons at the time this report is written.} which is the amount of cpu
 the node has and \textit{memory} which is memory capacity of the node. Of
 course, storage resources can be taken into account in future development of
 Batkube. Also, we do not consider the links between the nodes for now because
-we do not support parallel jobs. Finally, Batsim proposes an energy model that
+we do not support parallel jobs. Finally, Batsim proposes an energy consumption model that
 we decided to ignore as well.\\
 
 Batsim takes one or several workload as inputs, which are json files containing
-jobs definitions. Figure \ref{fig:bat_wl_ex} gives an example of such workload.
+jobs' definitions. Figure \ref{fig:bat_wl_ex} gives an example of such workload.
 The jobs are defined with the following inputs.  First, they are identified by
 an \textit{id} which is unique within each workload and are submitted at a time
 defined by the \textit{subtime} field. The \textit{res} field states the number
-of resources each job requires, although we don't use this field because we
-can't specify \textit{which} resource we require. Instead we pass resource
-requests as optional parameters. We support the additional fields \textit{cpu}
+of resources each job requires, although we leave this field blank because we
+want the scheduller to resolve \textit{which} resource we need. So, we pass resource
+request as optional parameters. We support the additional fields \textit{cpu}
 which has a minimum value of 100m cpu just like Kubernetes cpu
 requests\footnote{https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/}
 and \textit{memory} which also complies with Kubernetes compute resource
 definitions.  Jobs follow a certain \textit{profile} that defines the nature of
-the job.  These profile may be as simplistic as \textit{delay} profile which
+the job.  These profiles may be as simplistic as \textit{delay} profile which
 makes the resource wait for a given amount of time, or describe parallel tasks
 using matrices to describe the amount of exchanges between the allocated nodes.
 For now we only consider delays to simplify the implementation of the
@@ -71,15 +71,16 @@ schedulers\footnote{https://kubernetes.io/docs/tasks/extend-kubernetes/configure
 we support the field \textit{scheduler} which contains the name of the
 scheduler the job should be scheduled with.\\
 
-Batsim messaging interface is based on its protocol. Each message is composed
+Batsim messaging interface is based on its own protocol. Each message is composed
 of the field \textit{timestamp} which contains the current simulation time, as
 well the field \textit{events} which is a list of events either from Batsim to
 the scheduler, or from the scheduler to Batsim. Figure \ref{fig:batmsg_ex}
 depicts a standard message sent from the scheduler to Batsim.  Batkube features
 are limited because we focused on building a working proof of concept rather
-than a fully fledged Kubernetes simulator which is why only consider a subset
+than a fully fledged Kubernetes simulator, so working for a subset
 of these messages. We provide a list of supported events and their description
-in the section \ref{batmsg} of the appendix. More information on Batsim's
+in the appendix \ref{batmsg}\highlights{Appnedix are sections in latex but textwise each appendix a referenced as an appendix, e.g. appendix A show matrices and input, appendix B shows}.
+More information on Batsim's
 protocol is available on Batsim
 documentation\footnote{https://batsim.readthedocs.io/en/latest/protocol.html}
 
@@ -113,14 +114,14 @@ increasing the overall makespan and mean waiting time of the simulation.
 
 \section{Kubernetes concepts}
 
-Kubernetes is now a large ecosystem to which more than 2 700 developers have
+Kubernetes is now a large ecosystem to which more than 2,700 developers have
 contributed over the years. In this section we present the fundamental concepts
 and the components that make up Kubernetes.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[scale=0.5]{./imgs/node-overview.png}
-	\captionsource{Node overview}{https://kubernetes.io/docs/tutorials/kubernetes-basics/explore/explore-intro/}
+	\captionsource{Kube node overview}{https://kubernetes.io/docs/tutorials/kubernetes-basics/explore/explore-intro/}
 	\label{fig:node-overview}
 \end{figure}
 
@@ -173,7 +174,7 @@ TODO: Talk about Kubernetes schedulers. What they are based on, how they communi
 \subsection{Integration with Kubernetes}
 
 In order to adapt Kubernetes schedulers for use with Batsim we need to position
-ourselves between the Kubernetes scheduler and the cluster. Several level of
+ourselves between the Kubernetes scheduler and the cluster. Several levels of
 implementations are possible, and after some considerations described in
 section \ref{sec:imp_levels} of the appendix we decided to reimplement
 Kubernetes API. This new implementation will act as a Kubernetes cluster to the
@@ -230,15 +231,15 @@ OpenAPI\footnote{https://www.openapis.org/about} 2 specification which is a
 standard for describing APIs. Luckily tools exist to generate such
 specification from source code, but also to generate code from a specification.
 Since the Kubernetes API specification is available on their
-reposotory\footnote{https://github.com/kubernetes/kubernetes/blob/release-1.18/api/openapi-spec/swagger.json},
-we were able to use such tools. This allowed us not to implement boiler plate
+repository\footnote{https://github.com/kubernetes/kubernetes/blob/release-1.18/api/openapi-spec/swagger.json},
+we were able to use such tools. This allowed us to avoid implement boiler plate
 code by hand and fill the gaps where they needed to be filled, leaving empty
 the endpoints we do not need. These endpoints can be dealt with later for
 future development of the simulator. For this project we used
 go-swagger\footnote{https://github.com/go-swagger/go-swagger/tree/master/examples/stream-server}
 to generate our code and the API specification corresponds to the release 1.18
 of Kubernetes. One downside of this method is that go-swagger forbids to tamper
-with the code of the server itself, although we did not need to during this
+with the code of the server itself, although we did not need during this
 project.\\
 
 In order to enable communication between Batsim and the scheduler we need to
@@ -444,7 +445,7 @@ the simulation. We study those effects in section \ref{sec:params-eval}.
 		decision from the scheduler, we immediately give back control
 		to Batsim by sending it the decision. 
 	\item Also, we added the \textit{minimum delay} parameter, which is
-		analogous to \textit{timeout value}. It defines the minimum
+		analogous to \Textitf{timeout value}. It defines the minimum
 		amount of time we remain in Batkube each cycle: we will always
 		wait at least this amount of time for the scheduler even though
 		we already received a scheduling decision. This parameter was
@@ -456,7 +457,7 @@ the simulation. We study those effects in section \ref{sec:params-eval}.
 		earlier versions of the kube-scheduler which is why we keep it
 		in the simulator.
 	\item Whenever we block the scheduler to send a message to Batsim, the
-		latter supposedly advances the simulation as far as it desires.
+		later supposedly advances the simulation as far as it desires.
 		This may impact the decision process because we can't know for
 		sure if the scheduler would have made a decision in the mean
 		time. If that is the case, this decision will be drastically
@@ -465,10 +466,10 @@ the simulation. We study those effects in section \ref{sec:params-eval}.
 		This time step varies between \textit{base-simulation-timestep}
 		and \textit{max-simulation-timestep}: it starts at the base
 		timestep and increases following a backoff policy. This policy
-		is implemented as follow: the time step is multiplied by a
+		is implemented as follows: the time step is multiplied by a
 		factor every time the scheduler did not provide any decision,
 		and reset when we receive a decision from the scheduler. This
-		ensures Batsim does not jump to much forward in time while
+		ensures Batsim does not jump too much forward in time while
 		increasing simulation speed when the scheduler does not have
 		any decision to make. We tell Batsim to ``wake up'' at certain
 		times thanks to CALL\_ME\_LATER (CML) events. When Batsim
